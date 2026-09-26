@@ -36,17 +36,33 @@ Android SDK 路径在本机的 `android/local.properties` 中配置。
 
 ## Tag 自动构建 Android
 
-推送任意 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
+推送 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
 工作流使用 Flutter 3.47.0 / Java 17，执行依赖校验、静态检查、测试和 release APK 构建。
-版本名取自 `pubspec.yaml`，构建号使用 Actions run number；发布前先更新 `pubspec.yaml` 的版本名。
+版本名和构建号取自 `pubspec.yaml`（如 `1.0.1+2`）；每次发布都应提高版本名和构建号。
+tag 必须为与版本名匹配的 `vX.Y.Z`，不匹配时构建会失败，避免 App 更新判断与 APK 实际版本不一致。
 
 ```sh
 git tag v1.0.1
 git push origin v1.0.1
 ```
 
-在 Actions → Build Android → 对应运行 → Artifacts 下载 `flashnext-android-<运行编号>`，其中包含 `app-release.apk`，保存 90 天。
-目前只构建 Android，不自动创建 GitHub Release。
+tag 构建成功后自动创建同名 GitHub Release，附带通用 APK `FlashNext-X.Y.Z-android.apk` 和 `SHA256SUMS.txt`。
+发布说明优先读取 `docs/releases/<tag>.md`，没有该文件则使用自动生成的说明。已有 Release 不会被覆盖。
+也可在 Actions → Build Android → 对应运行 → Artifacts 下载 `flashnext-android-<运行编号>`，保存 90 天。
+手动运行只构建和上传 Artifact，不创建 Release。目前只支持 Android。
 
-当前沿用工程的 debug key 签署 release APK，适合测试安装，不用于应用商店发布。
-GitHub runner 的签名与本地手机安装版、其他运行之间可能不同，不能保证覆盖升级；正式分发前需配置固定的 release keystore。
+## 应用内更新
+
+参考 Torto Android 的流程，在设置页点击“检查更新”，读取本仓库 GitHub 最新正式 Release。
+有新版本且 APK 上传完成时显示“前往下载”，在浏览器打开发布页，再由用户下载并按 Android 提示安装。
+不自动下载或静默安装；忽略草稿、预发布和旧版本。检查更新需要访问 GitHub，不依赖内网学习服务器。
+
+## 固定签名
+
+CI 使用仓库 Secrets：`ANDROID_KEYSTORE_BASE64`、`ANDROID_KEY_ALIAS`、`ANDROID_KEY_PASSWORD`、`ANDROID_STORE_PASSWORD`。
+缺少任一项则停止构建，避免生成无法覆盖升级的随机签名 APK。
+当前固定使用已有 FlashNext 安装版的 Android Debug 证书，以保持现有用户覆盖升级兼容；尚不是商店发布证书。
+SHA-256：`f81ff936bd1e69c4f571fb0eec392bd198aa83ecff53050177fc9708045ee82f`。
+
+本地签名备份位于被 Git 忽略的 `signing/flashnext-keystore.jks`，配置位于 `android/key.properties`。
+请单独安全备份签名材料，不要提交到仓库。新环境未配置签名时，本地构建仍会使用其自身的 debug key；需要覆盖升级时应先配置上述固定签名。

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/api_client.dart';
 import '../../core/providers.dart';
+import 'app_update_section.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -106,6 +107,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             '需处于内网或 Tailscale 网络内才能访问服务器。',
             style: Theme.of(context).textTheme.bodySmall,
           ),
+          const AppUpdateSection(),
         ],
       ),
     );
