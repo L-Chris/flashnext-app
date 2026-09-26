@@ -38,12 +38,12 @@ Android SDK 路径在本机的 `android/local.properties` 中配置。
 
 推送 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
 工作流使用 Flutter 3.47.0 / Java 17，执行依赖校验、静态检查、测试和 release APK 构建。
-版本名和构建号取自 `pubspec.yaml`（如 `1.0.1+2`）；每次发布都应提高版本名和构建号。
+版本名和构建号取自 `pubspec.yaml`（如 `0.1.0+3`）；每次发布都应提高版本名和构建号。
 tag 必须为与版本名匹配的 `vX.Y.Z`，不匹配时构建会失败，避免 App 更新判断与 APK 实际版本不一致。
 
 ```sh
-git tag v1.0.1
-git push origin v1.0.1
+git tag v0.1.0
+git push origin v0.1.0
 ```
 
 tag 构建成功后自动创建同名 GitHub Release，附带通用 APK `FlashNext-X.Y.Z-android.apk` 和 `SHA256SUMS.txt`。
