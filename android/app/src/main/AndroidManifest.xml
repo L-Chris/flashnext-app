@@ -2,11 +2,12 @@
     <!-- Required in release builds as well as debug/profile builds. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="flashnext_app"
+        android:label="FlashNext"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""

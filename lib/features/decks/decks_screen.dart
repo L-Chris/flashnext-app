@@ -24,7 +24,15 @@ class _DecksScreenState extends ConsumerState<DecksScreen> {
     final decks = ref.watch(decksProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FlashNext'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/branding/logo.png', width: 32, height: 32,
+                excludeFromSemantics: true),
+            const SizedBox(width: 8),
+            const Text('FlashNext'),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: '刷新',

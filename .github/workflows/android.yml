@@ -1,0 +1,57 @@
+name: Build Android
+
+on:
+  push:
+    tags:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.47.0'
+          channel: stable
+          cache: true
+
+      - name: Use upstream repositories on GitHub runners
+        shell: bash
+        run: |
+          sed -i '/maven.aliyun.com/d' android/settings.gradle.kts android/build.gradle.kts
+          sed -i 's#mirrors.cloud.tencent.com/gradle/#services.gradle.org/distributions/#' android/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build APK
+        run: flutter build apk --release --build-number=${{ github.run_number }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: flashnext-android-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 90
