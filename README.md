@@ -1,5 +1,7 @@
 # FlashNext App
 
+> **本项目由 Qwen3.8 Max 开发**
+
 <img src="assets/branding/logo.png" width="96" alt="FlashNext logo" />
 
 FlashNext 的 Android 在线复习客户端，使用 Flutter、Riverpod、Dio 和 go_router。
