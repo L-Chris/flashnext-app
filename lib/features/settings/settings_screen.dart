@@ -43,7 +43,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await ref.read(settingsProvider.notifier).save(_controller.text);
     ref.invalidate(decksProvider);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已保存')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('已保存')));
     }
   }
 
@@ -52,14 +53,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _testing = true;
       _testResult = null;
     });
+    final client = ApiClient(
+      _controller.text.trim().replaceAll(RegExp(r'/+$'), ''),
+    );
     try {
-      final client = ApiClient(_controller.text.trim().replaceAll(RegExp(r'/+$'), ''));
       final decks = await client.decks();
+      if (!mounted) return;
       setState(() => _testResult = '连接成功，${decks.length} 个牌组');
     } catch (e) {
+      if (!mounted) return;
       final message = e is DioException ? describeDioError(e) : '$e';
       setState(() => _testResult = '连接失败：$message');
     } finally {
+      client.dispose();
       if (mounted) setState(() => _testing = false);
     }
   }

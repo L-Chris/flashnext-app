@@ -2,7 +2,7 @@
     <!-- Required in release builds as well as debug/profile builds. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="FlashNext"
+        android:label="${appLabel}"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

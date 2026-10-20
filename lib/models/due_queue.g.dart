@@ -53,12 +53,16 @@ _DueQueue _$DueQueueFromJson(Map<String, dynamic> json) => _DueQueue(
   counts: json['counts'] == null
       ? const QueueCounts()
       : QueueCounts.fromJson(json['counts'] as Map<String, dynamic>),
+  reviewOptions: json['reviewOptions'] == null
+      ? const ReviewOptions()
+      : ReviewOptions.fromJson(json['reviewOptions'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$DueQueueToJson(_DueQueue instance) => <String, dynamic>{
   'cards': instance.cards,
   'usage': instance.usage,
   'counts': instance.counts,
+  'reviewOptions': instance.reviewOptions,
 };
 
 _WordTag _$WordTagFromJson(Map<String, dynamic> json) => _WordTag(
@@ -80,6 +84,9 @@ Map<String, dynamic> _$WordTagToJson(_WordTag instance) => <String, dynamic>{
 _WordBrief _$WordBriefFromJson(Map<String, dynamic> json) => _WordBrief(
   id: (json['id'] as num?)?.toInt() ?? 0,
   headword: json['headword'] as String? ?? '',
+  language: json['language'] as String? ?? 'en',
+  reading: json['reading'] as String? ?? '',
+  romaji: json['romaji'] as String? ?? '',
   rank: (json['rank'] as num?)?.toInt(),
   pos: json['pos'] as String? ?? '',
   phonetic: json['phonetic'] as String? ?? '',
@@ -89,17 +96,32 @@ _WordBrief _$WordBriefFromJson(Map<String, dynamic> json) => _WordBrief(
           ?.map((e) => WordTag.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const <WordTag>[],
+  pronunciations:
+      (json['pronunciations'] as List<dynamic>?)
+          ?.map((e) => WordPronunciation.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <WordPronunciation>[],
+  senses:
+      (json['senses'] as List<dynamic>?)
+          ?.map((e) => WordSense.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <WordSense>[],
 );
 
 Map<String, dynamic> _$WordBriefToJson(_WordBrief instance) =>
     <String, dynamic>{
       'id': instance.id,
       'headword': instance.headword,
+      'language': instance.language,
+      'reading': instance.reading,
+      'romaji': instance.romaji,
       'rank': instance.rank,
       'pos': instance.pos,
       'phonetic': instance.phonetic,
       'translation': instance.translation,
       'tags': instance.tags,
+      'pronunciations': instance.pronunciations,
+      'senses': instance.senses,
     };
 
 _Card _$CardFromJson(Map<String, dynamic> json) => _Card(
@@ -108,6 +130,15 @@ _Card _$CardFromJson(Map<String, dynamic> json) => _Card(
   wordId: (json['wordId'] as num?)?.toInt(),
   front: json['front'] as String? ?? '',
   back: json['back'] as String? ?? '',
+  contentFormat: json['contentFormat'] as String? ?? 'plain',
+  media:
+      (json['media'] as List<dynamic>?)
+          ?.map((e) => CardMedia.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <CardMedia>[],
+  presentation: json['presentation'] == null
+      ? const CardPresentation()
+      : CardPresentation.fromJson(json['presentation'] as Map<String, dynamic>),
   stability: (json['stability'] as num?)?.toDouble() ?? 0,
   difficulty: (json['difficulty'] as num?)?.toDouble() ?? 0,
   state: (json['state'] as num?)?.toInt() ?? 0,
@@ -129,6 +160,9 @@ Map<String, dynamic> _$CardToJson(_Card instance) => <String, dynamic>{
   'wordId': instance.wordId,
   'front': instance.front,
   'back': instance.back,
+  'contentFormat': instance.contentFormat,
+  'media': instance.media,
+  'presentation': instance.presentation,
   'stability': instance.stability,
   'difficulty': instance.difficulty,
   'state': instance.state,

@@ -25,6 +25,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.rethinkos.flashnext_app"
+        manifestPlaceholders["appLabel"] = "FlashNext"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -49,6 +50,13 @@ android {
     }
 
     buildTypes {
+        for (mode in listOf("debug", "profile")) {
+            getByName(mode) {
+                // Development and native tests must never replace the release app.
+                applicationIdSuffix = ".debug"
+                manifestPlaceholders["appLabel"] = "FlashNext 测试"
+            }
+        }
         release {
             signingConfig = signingConfigs.getByName(
                 if (signingFile.exists()) "release" else "debug"

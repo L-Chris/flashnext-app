@@ -11,6 +11,7 @@ sealed class Deck with _$Deck {
     @Default(0) int id,
     @Default('') String name,
     @Default('') String description,
+    @Default('en') String language,
     @Default('') String createdAt,
     @Default(0) int dueCount,
     @Default(QueueCounts()) QueueCounts counts,

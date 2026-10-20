@@ -40,9 +40,13 @@ Map<String, dynamic> release({String tag = 'v1.1.0'}) => {
 };
 
 void main() {
-  AppUpdateService service(Object body, {int status = 200}) {
+  AppUpdateService service(
+    Object body, {
+    int status = 200,
+    String? architecture,
+  }) {
     final dio = Dio()..httpClientAdapter = FakeAdapter(status, body);
-    final client = AppUpdateService(dio: dio);
+    final client = AppUpdateService(dio: dio, architecture: architecture);
     addTearDown(client.dispose);
     return client;
   }
@@ -52,6 +56,47 @@ void main() {
     expect(result!.available, isTrue);
     expect(result.version, '1.1.0');
     expect(result.releasePage.host, 'github.com');
+  });
+
+  test('prefers a matching split APK over universal downloads', () async {
+    final body = release();
+    (body['assets'] as List).add({
+      'name': 'FlashNext-1.1.0-android-arm64-v8a.apk',
+      'state': 'uploaded',
+      'size': 1024,
+    });
+    final result = await service(
+      body,
+      architecture: 'arm64-v8a',
+    ).check('1.0.0');
+    expect(
+      result!.downloadUrl!.path,
+      endsWith('/FlashNext-1.1.0-android-arm64-v8a.apk'),
+    );
+    expect(result.architecture, 'arm64-v8a');
+  });
+
+  test('old universal releases still work on arm64 phones', () async {
+    final result = await service(
+      release(),
+      architecture: 'arm64-v8a',
+    ).check('1.0.0');
+    expect(result!.downloadUrl!.path, endsWith('/FlashNext-1.1.0-android.apk'));
+  });
+
+  test('does not offer an APK for the wrong architecture', () async {
+    final body = release()
+      ..['assets'] = [
+        {
+          'name': 'FlashNext-1.1.0-android-x86_64.apk',
+          'state': 'uploaded',
+          'size': 1024,
+        },
+      ];
+    await expectLater(
+      service(body, architecture: 'arm64-v8a').check('1.0.0'),
+      throwsA(isA<AppUpdateException>()),
+    );
   });
 
   test('compares numeric versions, not strings', () async {

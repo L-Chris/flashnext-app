@@ -56,7 +56,7 @@ class _AppUpdateSectionState extends State<AppUpdateSection> {
   }
 
   Future<void> _download() async {
-    final page = _update?.releasePage;
+    final page = _update?.downloadUrl ?? _update?.releasePage;
     if (page == null) return;
     try {
       if (await launchUrl(page, mode: LaunchMode.externalApplication)) return;
@@ -100,7 +100,10 @@ class _AppUpdateSectionState extends State<AppUpdateSection> {
             FilledButton(onPressed: _download, child: const Text('前往下载')),
         ],
       ),
-      if (_update?.available == true) const Text('将在浏览器打开发布页，下载 APK 后按系统提示安装。'),
+      if (_update?.available == true)
+        Text(
+          '将在浏览器下载${_update?.architecture == null ? '' : '适合本机 ${_update!.architecture} 的'} APK，完成后按系统提示安装。',
+        ),
     ],
   );
 }

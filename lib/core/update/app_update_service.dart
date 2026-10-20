@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:dio/dio.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -8,11 +10,15 @@ class AppUpdateInfo {
     required this.version,
     required this.releasePage,
     required this.available,
+    this.downloadUrl,
+    this.architecture,
   });
 
   final String version;
   final Uri releasePage;
   final bool available;
+  final Uri? downloadUrl;
+  final String? architecture;
 }
 
 Version releaseVersion(String value) => Version.parse(
@@ -28,8 +34,18 @@ class AppUpdateException implements Exception {
 
 /// Uses public GitHub Releases, independently of the private study server.
 class AppUpdateService {
-  AppUpdateService({Dio? dio}) : _dio = dio ?? Dio();
+  AppUpdateService({Dio? dio, String? architecture})
+    : _dio = dio ?? Dio(),
+      architecture = architecture ?? _runtimeArchitecture();
   final Dio _dio;
+  final String? architecture;
+
+  static String? _runtimeArchitecture() => switch (Abi.current()) {
+    Abi.androidArm64 => 'arm64-v8a',
+    Abi.androidArm => 'armeabi-v7a',
+    Abi.androidX64 => 'x86_64',
+    _ => null,
+  };
 
   Future<AppUpdateInfo?> check(String currentVersion) async {
     final Response<dynamic> response;
@@ -75,21 +91,44 @@ class AppUpdateService {
       throw const AppUpdateException('发布地址无效。');
     }
     final assets = body['assets'];
-    if (assets is! List ||
-        !assets.any(
+    final prefix = 'FlashNext-$version-android';
+    final names = [
+      if (architecture != null) '$prefix-$architecture.apk',
+      '$prefix.apk',
+      if (architecture == null) ...[
+        '$prefix-arm64-v8a.apk',
+        '$prefix-armeabi-v7a.apk',
+        '$prefix-x86_64.apk',
+      ],
+    ];
+    String? selected;
+    if (assets is List) {
+      for (final name in names) {
+        if (assets.any(
           (asset) =>
               asset is Map &&
-              asset['name'] == 'FlashNext-$version-android.apk' &&
+              asset['name'] == name &&
               asset['state'] == 'uploaded' &&
               asset['size'] is num &&
               (asset['size'] as num) > 0,
         )) {
+          selected = name;
+          break;
+        }
+      }
+    }
+    if (selected == null) {
       throw const AppUpdateException('新版本安装包尚未就绪，请稍后重试。');
     }
     return AppUpdateInfo(
       version: version.toString(),
       releasePage: page,
       available: version > releaseVersion(currentVersion),
+      architecture: architecture,
+      downloadUrl: Uri.https(
+        'github.com',
+        '/$releaseRepository/releases/download/${body['tag_name']}/$selected',
+      ),
     );
   }
 

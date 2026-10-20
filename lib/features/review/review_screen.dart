@@ -1,11 +1,14 @@
-import 'package:dio/dio.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/card_content.dart';
 import '../../core/network/api_client.dart';
 import '../../core/providers.dart';
-import '../../models/due_queue.dart';
+import '../../models/study.dart';
+import 'review_audio.dart';
+import 'review_session.dart';
+import 'study_card_face.dart';
 
 const _ratings = [
   (rating: 1, label: '忘记', color: Color(0xFFDC2626)),
@@ -16,238 +19,251 @@ const _ratings = [
 
 class ReviewScreen extends ConsumerStatefulWidget {
   const ReviewScreen({required this.deckId, required this.deckName, super.key});
-
   final int deckId;
   final String deckName;
-
   @override
   ConsumerState<ReviewScreen> createState() => _ReviewScreenState();
 }
 
-class _ReviewScreenState extends ConsumerState<ReviewScreen> {
-  List<Card>? _queue;
-  bool _revealed = false;
-  bool _busy = false;
-  bool _done = false;
-  String? _error;
-  int? _lastRatedCardId;
-  final _stopwatch = Stopwatch();
+class _ReviewScreenState extends ConsumerState<ReviewScreen>
+    with WidgetsBindingObserver {
+  late ReviewSession _session;
+  late ReviewAudio _audio;
+  ProviderSubscription<ApiClient>? _subscription;
 
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _error = null;
-      _busy = true;
+    WidgetsBinding.instance.addObserver(this);
+    _bind(ref.read(apiClientProvider));
+    _subscription = ref.listenManual(apiClientProvider, (_, api) {
+      _session.removeListener(_changed);
+      _session.dispose();
+      _audio.dispose();
+      _bind(api);
     });
-    try {
-      final queue = await ref.read(apiClientProvider).due(widget.deckId);
-      if (!mounted) return;
-      setState(() {
-        _queue = queue.cards;
-        _done = queue.cards.isEmpty;
-        _revealed = false;
-        _busy = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e is DioException ? describeDioError(e) : '$e';
-        _busy = false;
-      });
-    }
   }
 
-  void _reveal() {
-    setState(() => _revealed = true);
-    _stopwatch
-      ..reset()
-      ..start();
+  void _bind(ApiClient api) {
+    final audio = ReviewAudio(server: api.baseUrl);
+    _audio = audio;
+    _session = ReviewSession(
+      api: api,
+      deckId: widget.deckId,
+      onAutoplay: (visit, media) => unawaited(audio.play(visit, media)),
+      onStopAudio: audio.stop,
+    );
+    final state = WidgetsBinding.instance.lifecycleState;
+    _session.setForeground(state == null || state == AppLifecycleState.resumed);
+    _session.addListener(_changed);
+    unawaited(_session.load());
   }
+
+  void _changed() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) =>
+      _session.setForeground(state == AppLifecycleState.resumed);
 
   Future<void> _rate(int rating) async {
-    final queue = _queue;
-    if (queue == null || queue.isEmpty || _busy) return;
-    final card = queue.first;
-    _stopwatch.stop();
-    setState(() => _busy = true);
-    try {
-      await ref
-          .read(apiClientProvider)
-          .review(card.id, rating, durationMs: _stopwatch.elapsedMilliseconds);
-      _lastRatedCardId = card.id;
-      if (!mounted) return;
-      setState(() {
-        _queue = queue.skip(1).toList();
-        _revealed = false;
-        _busy = false;
-      });
-      if (_queue!.isEmpty) await _load();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _busy = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('评分失败：${e is DioException ? describeDioError(e) : e}')),
-      );
-    }
+    await _session.rate(rating);
+    if (mounted) ref.invalidate(decksProvider);
   }
 
   Future<void> _undo() async {
-    final id = _lastRatedCardId;
-    if (id == null || _busy) return;
-    setState(() => _busy = true);
-    try {
-      await ref.read(apiClientProvider).undo(id);
-      _lastRatedCardId = null;
-      await _load();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _busy = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('撤销失败：${e is DioException ? describeDioError(e) : e}')),
-      );
-    }
+    await _session.undo();
+    if (mounted) ref.invalidate(decksProvider);
+  }
+
+  @override
+  void dispose() {
+    _subscription?.close();
+    WidgetsBinding.instance.removeObserver(this);
+    _session.removeListener(_changed);
+    _session.dispose();
+    _audio.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final queue = _queue;
+    final session = _session;
+    final card = session.card;
+    final queue = session.queue;
+    final media = card == null
+        ? const <CardMedia>[]
+        : mediaForSide(card, session.revealed);
+    final remaining = session.remaining;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.deckName),
         actions: [
-          if (_lastRatedCardId != null)
-            IconButton(tooltip: '撤销上一次', onPressed: _busy ? null : _undo, icon: const Icon(Icons.undo)),
+          IconButton(
+            tooltip: '撤销上一次',
+            onPressed: session.canUndo ? _undo : null,
+            icon: const Icon(Icons.undo),
+          ),
         ],
       ),
-      body: _error != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(_error!, textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    FilledButton(onPressed: _load, child: const Text('重试')),
-                  ],
-                ),
-              ),
-            )
-          : _done
-              ? const Center(child: Text('太棒了！当前没有需要复习的卡片'))
-              : queue == null || queue.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 260),
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            border: Border.all(color: theme.colorScheme.outlineVariant),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: GestureDetector(
-                            onTap: _revealed ? null : _reveal,
-                            child: Center(child: _CardFace(card: queue.first, revealed: _revealed)),
-                          ),
-                        ),
-                      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              if (session.notice != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    session.notice!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  if (!_revealed)
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _busy ? null : _reveal,
-                        child: const Text('显示答案'),
-                      ),
-                    )
-                  else
-                    Row(
+                ),
+              if (queue != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    '新卡剩余 ${queue.usage.newRemaining} · 复习剩余 ${queue.usage.reviewRemaining}'
+                    '${queue.counts.hiddenByLimit > 0 ? ' · ${queue.counts.hiddenByLimit} 张已达限额' : ''}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              if (session.error != null)
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        for (final r in _ratings)
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              child: FilledButton(
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: r.color,
-                                  disabledBackgroundColor: r.color.withValues(alpha: 0.5),
-                                ),
-                                onPressed: _busy ? null : () => _rate(r.rating),
-                                child: Text(r.label),
-                              ),
-                            ),
-                          ),
+                        Text(session.error!, textAlign: TextAlign.center),
+                        FilledButton(
+                          onPressed: session.busy ? null : session.load,
+                          child: const Text('重试加载队列'),
+                        ),
                       ],
                     ),
-                ],
-              ),
-            ),
-    );
-  }
-}
-
-class _CardFace extends StatelessWidget {
-  const _CardFace({required this.card, required this.revealed});
-
-  final Card card;
-  final bool revealed;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final content = CardContent.parse(card.back);
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(card.front, style: theme.textTheme.headlineMedium),
-          if (revealed) ...[
-            if (content.phonetic != null) ...[
-              const SizedBox(height: 16),
-              Text(content.phonetic!, style: theme.textTheme.titleMedium),
-            ],
-            const SizedBox(height: 20),
-            Table(
-              columnWidths: const {
-                0: IntrinsicColumnWidth(),
-                1: FlexColumnWidth(),
-              },
-              defaultVerticalAlignment: TableCellVerticalAlignment.top,
-              children: [
-                for (final m in content.meanings)
-                  TableRow(
+                  ),
+                )
+              else if (session.done)
+                const Expanded(child: Center(child: Text('太棒了！当前没有需要复习的卡片')))
+              else if (card == null)
+                const Expanded(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else ...[
+                Expanded(
+                  child: Container(
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: StudyCardFace(
+                      key: ValueKey(session.visit),
+                      api: session.api,
+                      card: card,
+                      visit: session.visit,
+                      revealed: session.revealed,
+                      onReady: session.contentReady,
+                      onUnavailable: session.contentUnavailable,
+                    ),
+                  ),
+                ),
+                if (media.isNotEmpty)
+                  ListenableBuilder(
+                    listenable: _audio,
+                    builder: (context, _) => Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${session.revealed ? '背面' : '正面'}音频 · ${media.length} 个文件',
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed:
+                                  session.busy ||
+                                      !session.foreground ||
+                                      !session.ready
+                                  ? null
+                                  : () {
+                                      if (_audio.playing || _audio.loading) {
+                                        _audio.stop();
+                                      } else {
+                                        unawaited(
+                                          _audio.play(
+                                            '${session.visit}:${session.revealed}',
+                                            media,
+                                          ),
+                                        );
+                                      }
+                                    },
+                              icon: Icon(
+                                _audio.playing || _audio.loading
+                                    ? Icons.stop
+                                    : Icons.play_arrow,
+                              ),
+                              label: Text(
+                                _audio.loading
+                                    ? '加载中（停止）'
+                                    : _audio.playing
+                                    ? '停止'
+                                    : '播放',
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_audio.error != null) Text(_audio.error!),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                if (!session.revealed)
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: session.busy || !session.foreground
+                          ? null
+                          : session.reveal,
+                      child: Text(
+                        remaining == null || !session.counting
+                            ? '显示答案'
+                            : '显示答案 · ${(remaining.inMilliseconds / 1000).ceil()} 秒',
+                      ),
+                    ),
+                  )
+                else
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12, bottom: 4),
-                        child: Text(m.pos ?? '', style: theme.textTheme.bodyMedium),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(m.text, style: theme.textTheme.bodyLarge),
-                      ),
+                      for (final rating in _ratings)
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: rating.color,
+                          ),
+                          onPressed: session.canRate
+                              ? () => _rate(rating.rating)
+                              : null,
+                          child: Text(rating.label),
+                        ),
                     ],
                   ),
+                if (session.busy)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: LinearProgressIndicator(),
+                  ),
               ],
-            ),
-          ],
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

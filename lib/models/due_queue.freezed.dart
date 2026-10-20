@@ -571,7 +571,7 @@ as int,
 /// @nodoc
 mixin _$DueQueue {
 
- List<Card> get cards; Usage get usage; QueueCounts get counts;
+ List<Card> get cards; Usage get usage; QueueCounts get counts; ReviewOptions get reviewOptions;
 /// Create a copy of DueQueue
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -585,20 +585,20 @@ $DueQueueCopyWith<DueQueue> get copyWith => _$DueQueueCopyWithImpl<DueQueue>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as DueQueue;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DueQueue&&const DeepCollectionEquality().equals(other.cards, _this.cards)&&(identical(other.usage, _this.usage) || other.usage == _this.usage)&&(identical(other.counts, _this.counts) || other.counts == _this.counts));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DueQueue&&const DeepCollectionEquality().equals(other.cards, _this.cards)&&(identical(other.usage, _this.usage) || other.usage == _this.usage)&&(identical(other.counts, _this.counts) || other.counts == _this.counts)&&(identical(other.reviewOptions, _this.reviewOptions) || other.reviewOptions == _this.reviewOptions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as DueQueue;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.cards),_this.usage,_this.counts);
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.cards),_this.usage,_this.counts,_this.reviewOptions);
 }
 
 @override
 String toString() {
   final _this = this as DueQueue;
-  return 'DueQueue(cards: ${_this.cards}, usage: ${_this.usage}, counts: ${_this.counts})';
+  return 'DueQueue(cards: ${_this.cards}, usage: ${_this.usage}, counts: ${_this.counts}, reviewOptions: ${_this.reviewOptions})';
 }
 
 
@@ -609,11 +609,11 @@ abstract mixin class $DueQueueCopyWith<$Res>  {
   factory $DueQueueCopyWith(DueQueue value, $Res Function(DueQueue) _then) = _$DueQueueCopyWithImpl;
 @useResult
 $Res call({
- List<Card> cards, Usage usage, QueueCounts counts
+ List<Card> cards, Usage usage, QueueCounts counts, ReviewOptions reviewOptions
 });
 
 
-$UsageCopyWith<$Res> get usage;$QueueCountsCopyWith<$Res> get counts;
+$UsageCopyWith<$Res> get usage;$QueueCountsCopyWith<$Res> get counts;$ReviewOptionsCopyWith<$Res> get reviewOptions;
 
 }
 /// @nodoc
@@ -626,12 +626,13 @@ class _$DueQueueCopyWithImpl<$Res>
 
 /// Create a copy of DueQueue
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? cards = null,Object? usage = null,Object? counts = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? cards = null,Object? usage = null,Object? counts = null,Object? reviewOptions = null,}) {
   return _then(DueQueue(
 cards: null == cards ? _self.cards : cards // ignore: cast_nullable_to_non_nullable
 as List<Card>,usage: null == usage ? _self.usage : usage // ignore: cast_nullable_to_non_nullable
 as Usage,counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
-as QueueCounts,
+as QueueCounts,reviewOptions: null == reviewOptions ? _self.reviewOptions : reviewOptions // ignore: cast_nullable_to_non_nullable
+as ReviewOptions,
   ));
 }
 /// Create a copy of DueQueue
@@ -639,7 +640,7 @@ as QueueCounts,
 @override
 @pragma('vm:prefer-inline')
 $UsageCopyWith<$Res> get usage {
-  
+
   return $UsageCopyWith<$Res>(_self.usage, (value) {
     return _then(_self.copyWith(usage: value));
   });
@@ -648,9 +649,18 @@ $UsageCopyWith<$Res> get usage {
 @override
 @pragma('vm:prefer-inline')
 $QueueCountsCopyWith<$Res> get counts {
-  
+
   return $QueueCountsCopyWith<$Res>(_self.counts, (value) {
     return _then(_self.copyWith(counts: value));
+  });
+}/// Create a copy of DueQueue
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReviewOptionsCopyWith<$Res> get reviewOptions {
+
+  return $ReviewOptionsCopyWith<$Res>(_self.reviewOptions, (value) {
+    return _then(_self.copyWith(reviewOptions: value));
   });
 }
 }
@@ -731,10 +741,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Card> cards,  Usage usage,  QueueCounts counts)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<Card> cards,  Usage usage,  QueueCounts counts,  ReviewOptions reviewOptions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DueQueue() when $default != null:
-return $default(_that.cards,_that.usage,_that.counts);case _:
+return $default(_that.cards,_that.usage,_that.counts,_that.reviewOptions);case _:
   return orElse();
 
 }
@@ -752,10 +762,10 @@ return $default(_that.cards,_that.usage,_that.counts);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Card> cards,  Usage usage,  QueueCounts counts)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<Card> cards,  Usage usage,  QueueCounts counts,  ReviewOptions reviewOptions)  $default,) {final _that = this;
 switch (_that) {
 case _DueQueue():
-return $default(_that.cards,_that.usage,_that.counts);}
+return $default(_that.cards,_that.usage,_that.counts,_that.reviewOptions);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -769,10 +779,10 @@ return $default(_that.cards,_that.usage,_that.counts);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Card> cards,  Usage usage,  QueueCounts counts)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<Card> cards,  Usage usage,  QueueCounts counts,  ReviewOptions reviewOptions)?  $default,) {final _that = this;
 switch (_that) {
 case _DueQueue() when $default != null:
-return $default(_that.cards,_that.usage,_that.counts);case _:
+return $default(_that.cards,_that.usage,_that.counts,_that.reviewOptions);case _:
   return null;
 
 }
@@ -784,7 +794,7 @@ return $default(_that.cards,_that.usage,_that.counts);case _:
 @JsonSerializable()
 
 class _DueQueue implements DueQueue {
-  const _DueQueue({ List<Card> cards = const <Card>[], this.usage = const Usage(), this.counts = const QueueCounts()}): _cards = cards;
+  const _DueQueue({ List<Card> cards = const <Card>[], this.usage = const Usage(), this.counts = const QueueCounts(), this.reviewOptions = const ReviewOptions()}): _cards = cards;
   factory _DueQueue.fromJson(Map<String, dynamic> json) => _$DueQueueFromJson(json);
 
  final  List<Card> _cards;
@@ -796,6 +806,7 @@ class _DueQueue implements DueQueue {
 
 @override@JsonKey() final  Usage usage;
 @override@JsonKey() final  QueueCounts counts;
+@override@JsonKey() final  ReviewOptions reviewOptions;
 
 /// Create a copy of DueQueue
 /// with the given fields replaced by the non-null parameter values.
@@ -810,18 +821,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DueQueue&&const DeepCollectionEquality().equals(other.cards, _cards)&&(identical(other.usage, usage) || other.usage == usage)&&(identical(other.counts, counts) || other.counts == counts));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DueQueue&&const DeepCollectionEquality().equals(other.cards, _cards)&&(identical(other.usage, usage) || other.usage == usage)&&(identical(other.counts, counts) || other.counts == counts)&&(identical(other.reviewOptions, reviewOptions) || other.reviewOptions == reviewOptions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_cards),usage,counts);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_cards),usage,counts,reviewOptions);
 }
 
 @override
 String toString() {
-    return 'DueQueue(cards: $cards, usage: $usage, counts: $counts)';
+    return 'DueQueue(cards: $cards, usage: $usage, counts: $counts, reviewOptions: $reviewOptions)';
 }
 
 
@@ -832,11 +843,11 @@ abstract mixin class _$DueQueueCopyWith<$Res> implements $DueQueueCopyWith<$Res>
   factory _$DueQueueCopyWith(_DueQueue value, $Res Function(_DueQueue) _then) = __$DueQueueCopyWithImpl;
 @override @useResult
 $Res call({
- List<Card> cards, Usage usage, QueueCounts counts
+ List<Card> cards, Usage usage, QueueCounts counts, ReviewOptions reviewOptions
 });
 
 
-@override $UsageCopyWith<$Res> get usage;@override $QueueCountsCopyWith<$Res> get counts;
+@override $UsageCopyWith<$Res> get usage;@override $QueueCountsCopyWith<$Res> get counts;@override $ReviewOptionsCopyWith<$Res> get reviewOptions;
 
 }
 /// @nodoc
@@ -849,12 +860,13 @@ class __$DueQueueCopyWithImpl<$Res>
 
 /// Create a copy of DueQueue
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? cards = null,Object? usage = null,Object? counts = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? cards = null,Object? usage = null,Object? counts = null,Object? reviewOptions = null,}) {
   return _then(_DueQueue(
 cards: null == cards ? _self._cards : cards // ignore: cast_nullable_to_non_nullable
 as List<Card>,usage: null == usage ? _self.usage : usage // ignore: cast_nullable_to_non_nullable
 as Usage,counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
-as QueueCounts,
+as QueueCounts,reviewOptions: null == reviewOptions ? _self.reviewOptions : reviewOptions // ignore: cast_nullable_to_non_nullable
+as ReviewOptions,
   ));
 }
 
@@ -863,7 +875,7 @@ as QueueCounts,
 @override
 @pragma('vm:prefer-inline')
 $UsageCopyWith<$Res> get usage {
-  
+
   return $UsageCopyWith<$Res>(_self.usage, (value) {
     return _then(_self.copyWith(usage: value));
   });
@@ -872,9 +884,18 @@ $UsageCopyWith<$Res> get usage {
 @override
 @pragma('vm:prefer-inline')
 $QueueCountsCopyWith<$Res> get counts {
-  
+
   return $QueueCountsCopyWith<$Res>(_self.counts, (value) {
     return _then(_self.copyWith(counts: value));
+  });
+}/// Create a copy of DueQueue
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReviewOptionsCopyWith<$Res> get reviewOptions {
+
+  return $ReviewOptionsCopyWith<$Res>(_self.reviewOptions, (value) {
+    return _then(_self.copyWith(reviewOptions: value));
   });
 }
 }
@@ -1159,7 +1180,7 @@ as String,
 /// @nodoc
 mixin _$WordBrief {
 
- int get id; String get headword; int? get rank; String get pos; String get phonetic; String get translation; List<WordTag> get tags;
+ int get id; String get headword; String get language; String get reading; String get romaji; int? get rank; String get pos; String get phonetic; String get translation; List<WordTag> get tags; List<WordPronunciation> get pronunciations; List<WordSense> get senses;
 /// Create a copy of WordBrief
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1173,20 +1194,20 @@ $WordBriefCopyWith<WordBrief> get copyWith => _$WordBriefCopyWithImpl<WordBrief>
 @override
 bool operator ==(Object other) {
   final _this = this as WordBrief;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WordBrief&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.headword, _this.headword) || other.headword == _this.headword)&&(identical(other.rank, _this.rank) || other.rank == _this.rank)&&(identical(other.pos, _this.pos) || other.pos == _this.pos)&&(identical(other.phonetic, _this.phonetic) || other.phonetic == _this.phonetic)&&(identical(other.translation, _this.translation) || other.translation == _this.translation)&&const DeepCollectionEquality().equals(other.tags, _this.tags));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WordBrief&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.headword, _this.headword) || other.headword == _this.headword)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.reading, _this.reading) || other.reading == _this.reading)&&(identical(other.romaji, _this.romaji) || other.romaji == _this.romaji)&&(identical(other.rank, _this.rank) || other.rank == _this.rank)&&(identical(other.pos, _this.pos) || other.pos == _this.pos)&&(identical(other.phonetic, _this.phonetic) || other.phonetic == _this.phonetic)&&(identical(other.translation, _this.translation) || other.translation == _this.translation)&&const DeepCollectionEquality().equals(other.tags, _this.tags)&&const DeepCollectionEquality().equals(other.pronunciations, _this.pronunciations)&&const DeepCollectionEquality().equals(other.senses, _this.senses));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as WordBrief;
-  return Object.hash(runtimeType,_this.id,_this.headword,_this.rank,_this.pos,_this.phonetic,_this.translation,const DeepCollectionEquality().hash(_this.tags));
+  return Object.hash(runtimeType,_this.id,_this.headword,_this.language,_this.reading,_this.romaji,_this.rank,_this.pos,_this.phonetic,_this.translation,const DeepCollectionEquality().hash(_this.tags),const DeepCollectionEquality().hash(_this.pronunciations),const DeepCollectionEquality().hash(_this.senses));
 }
 
 @override
 String toString() {
   final _this = this as WordBrief;
-  return 'WordBrief(id: ${_this.id}, headword: ${_this.headword}, rank: ${_this.rank}, pos: ${_this.pos}, phonetic: ${_this.phonetic}, translation: ${_this.translation}, tags: ${_this.tags})';
+  return 'WordBrief(id: ${_this.id}, headword: ${_this.headword}, language: ${_this.language}, reading: ${_this.reading}, romaji: ${_this.romaji}, rank: ${_this.rank}, pos: ${_this.pos}, phonetic: ${_this.phonetic}, translation: ${_this.translation}, tags: ${_this.tags}, pronunciations: ${_this.pronunciations}, senses: ${_this.senses})';
 }
 
 
@@ -1197,7 +1218,7 @@ abstract mixin class $WordBriefCopyWith<$Res>  {
   factory $WordBriefCopyWith(WordBrief value, $Res Function(WordBrief) _then) = _$WordBriefCopyWithImpl;
 @useResult
 $Res call({
- int id, String headword, int? rank, String pos, String phonetic, String translation, List<WordTag> tags
+ int id, String headword, String language, String reading, String romaji, int? rank, String pos, String phonetic, String translation, List<WordTag> tags, List<WordPronunciation> pronunciations, List<WordSense> senses
 });
 
 
@@ -1214,16 +1235,21 @@ class _$WordBriefCopyWithImpl<$Res>
 
 /// Create a copy of WordBrief
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? headword = null,Object? rank = freezed,Object? pos = null,Object? phonetic = null,Object? translation = null,Object? tags = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? headword = null,Object? language = null,Object? reading = null,Object? romaji = null,Object? rank = freezed,Object? pos = null,Object? phonetic = null,Object? translation = null,Object? tags = null,Object? pronunciations = null,Object? senses = null,}) {
   return _then(WordBrief(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,headword: null == headword ? _self.headword : headword // ignore: cast_nullable_to_non_nullable
+as String,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String,reading: null == reading ? _self.reading : reading // ignore: cast_nullable_to_non_nullable
+as String,romaji: null == romaji ? _self.romaji : romaji // ignore: cast_nullable_to_non_nullable
 as String,rank: freezed == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
 as int?,pos: null == pos ? _self.pos : pos // ignore: cast_nullable_to_non_nullable
 as String,phonetic: null == phonetic ? _self.phonetic : phonetic // ignore: cast_nullable_to_non_nullable
 as String,translation: null == translation ? _self.translation : translation // ignore: cast_nullable_to_non_nullable
 as String,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
-as List<WordTag>,
+as List<WordTag>,pronunciations: null == pronunciations ? _self.pronunciations : pronunciations // ignore: cast_nullable_to_non_nullable
+as List<WordPronunciation>,senses: null == senses ? _self.senses : senses // ignore: cast_nullable_to_non_nullable
+as List<WordSense>,
   ));
 }
 
@@ -1305,10 +1331,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String headword,  int? rank,  String pos,  String phonetic,  String translation,  List<WordTag> tags)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String headword,  String language,  String reading,  String romaji,  int? rank,  String pos,  String phonetic,  String translation,  List<WordTag> tags,  List<WordPronunciation> pronunciations,  List<WordSense> senses)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WordBrief() when $default != null:
-return $default(_that.id,_that.headword,_that.rank,_that.pos,_that.phonetic,_that.translation,_that.tags);case _:
+return $default(_that.id,_that.headword,_that.language,_that.reading,_that.romaji,_that.rank,_that.pos,_that.phonetic,_that.translation,_that.tags,_that.pronunciations,_that.senses);case _:
   return orElse();
 
 }
@@ -1326,10 +1352,10 @@ return $default(_that.id,_that.headword,_that.rank,_that.pos,_that.phonetic,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String headword,  int? rank,  String pos,  String phonetic,  String translation,  List<WordTag> tags)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String headword,  String language,  String reading,  String romaji,  int? rank,  String pos,  String phonetic,  String translation,  List<WordTag> tags,  List<WordPronunciation> pronunciations,  List<WordSense> senses)  $default,) {final _that = this;
 switch (_that) {
 case _WordBrief():
-return $default(_that.id,_that.headword,_that.rank,_that.pos,_that.phonetic,_that.translation,_that.tags);}
+return $default(_that.id,_that.headword,_that.language,_that.reading,_that.romaji,_that.rank,_that.pos,_that.phonetic,_that.translation,_that.tags,_that.pronunciations,_that.senses);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1343,10 +1369,10 @@ return $default(_that.id,_that.headword,_that.rank,_that.pos,_that.phonetic,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String headword,  int? rank,  String pos,  String phonetic,  String translation,  List<WordTag> tags)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String headword,  String language,  String reading,  String romaji,  int? rank,  String pos,  String phonetic,  String translation,  List<WordTag> tags,  List<WordPronunciation> pronunciations,  List<WordSense> senses)?  $default,) {final _that = this;
 switch (_that) {
 case _WordBrief() when $default != null:
-return $default(_that.id,_that.headword,_that.rank,_that.pos,_that.phonetic,_that.translation,_that.tags);case _:
+return $default(_that.id,_that.headword,_that.language,_that.reading,_that.romaji,_that.rank,_that.pos,_that.phonetic,_that.translation,_that.tags,_that.pronunciations,_that.senses);case _:
   return null;
 
 }
@@ -1358,11 +1384,14 @@ return $default(_that.id,_that.headword,_that.rank,_that.pos,_that.phonetic,_tha
 @JsonSerializable()
 
 class _WordBrief implements WordBrief {
-  const _WordBrief({this.id = 0, this.headword = '', this.rank, this.pos = '', this.phonetic = '', this.translation = '',  List<WordTag> tags = const <WordTag>[]}): _tags = tags;
+  const _WordBrief({this.id = 0, this.headword = '', this.language = 'en', this.reading = '', this.romaji = '', this.rank, this.pos = '', this.phonetic = '', this.translation = '',  List<WordTag> tags = const <WordTag>[],  List<WordPronunciation> pronunciations = const <WordPronunciation>[],  List<WordSense> senses = const <WordSense>[]}): _tags = tags,_pronunciations = pronunciations,_senses = senses;
   factory _WordBrief.fromJson(Map<String, dynamic> json) => _$WordBriefFromJson(json);
 
 @override@JsonKey() final  int id;
 @override@JsonKey() final  String headword;
+@override@JsonKey() final  String language;
+@override@JsonKey() final  String reading;
+@override@JsonKey() final  String romaji;
 @override final  int? rank;
 @override@JsonKey() final  String pos;
 @override@JsonKey() final  String phonetic;
@@ -1372,6 +1401,20 @@ class _WordBrief implements WordBrief {
   if (_tags is EqualUnmodifiableListView) return _tags;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_tags);
+}
+
+ final  List<WordPronunciation> _pronunciations;
+@override@JsonKey() List<WordPronunciation> get pronunciations {
+  if (_pronunciations is EqualUnmodifiableListView) return _pronunciations;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_pronunciations);
+}
+
+ final  List<WordSense> _senses;
+@override@JsonKey() List<WordSense> get senses {
+  if (_senses is EqualUnmodifiableListView) return _senses;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_senses);
 }
 
 
@@ -1388,18 +1431,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WordBrief&&(identical(other.id, id) || other.id == id)&&(identical(other.headword, headword) || other.headword == headword)&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.pos, pos) || other.pos == pos)&&(identical(other.phonetic, phonetic) || other.phonetic == phonetic)&&(identical(other.translation, translation) || other.translation == translation)&&const DeepCollectionEquality().equals(other.tags, _tags));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WordBrief&&(identical(other.id, id) || other.id == id)&&(identical(other.headword, headword) || other.headword == headword)&&(identical(other.language, language) || other.language == language)&&(identical(other.reading, reading) || other.reading == reading)&&(identical(other.romaji, romaji) || other.romaji == romaji)&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.pos, pos) || other.pos == pos)&&(identical(other.phonetic, phonetic) || other.phonetic == phonetic)&&(identical(other.translation, translation) || other.translation == translation)&&const DeepCollectionEquality().equals(other.tags, _tags)&&const DeepCollectionEquality().equals(other.pronunciations, _pronunciations)&&const DeepCollectionEquality().equals(other.senses, _senses));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,headword,rank,pos,phonetic,translation,const DeepCollectionEquality().hash(_tags));
+    return Object.hash(runtimeType,id,headword,language,reading,romaji,rank,pos,phonetic,translation,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_pronunciations),const DeepCollectionEquality().hash(_senses));
 }
 
 @override
 String toString() {
-    return 'WordBrief(id: $id, headword: $headword, rank: $rank, pos: $pos, phonetic: $phonetic, translation: $translation, tags: $tags)';
+    return 'WordBrief(id: $id, headword: $headword, language: $language, reading: $reading, romaji: $romaji, rank: $rank, pos: $pos, phonetic: $phonetic, translation: $translation, tags: $tags, pronunciations: $pronunciations, senses: $senses)';
 }
 
 
@@ -1410,7 +1453,7 @@ abstract mixin class _$WordBriefCopyWith<$Res> implements $WordBriefCopyWith<$Re
   factory _$WordBriefCopyWith(_WordBrief value, $Res Function(_WordBrief) _then) = __$WordBriefCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String headword, int? rank, String pos, String phonetic, String translation, List<WordTag> tags
+ int id, String headword, String language, String reading, String romaji, int? rank, String pos, String phonetic, String translation, List<WordTag> tags, List<WordPronunciation> pronunciations, List<WordSense> senses
 });
 
 
@@ -1427,16 +1470,21 @@ class __$WordBriefCopyWithImpl<$Res>
 
 /// Create a copy of WordBrief
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? headword = null,Object? rank = freezed,Object? pos = null,Object? phonetic = null,Object? translation = null,Object? tags = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? headword = null,Object? language = null,Object? reading = null,Object? romaji = null,Object? rank = freezed,Object? pos = null,Object? phonetic = null,Object? translation = null,Object? tags = null,Object? pronunciations = null,Object? senses = null,}) {
   return _then(_WordBrief(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,headword: null == headword ? _self.headword : headword // ignore: cast_nullable_to_non_nullable
+as String,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String,reading: null == reading ? _self.reading : reading // ignore: cast_nullable_to_non_nullable
+as String,romaji: null == romaji ? _self.romaji : romaji // ignore: cast_nullable_to_non_nullable
 as String,rank: freezed == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
 as int?,pos: null == pos ? _self.pos : pos // ignore: cast_nullable_to_non_nullable
 as String,phonetic: null == phonetic ? _self.phonetic : phonetic // ignore: cast_nullable_to_non_nullable
 as String,translation: null == translation ? _self.translation : translation // ignore: cast_nullable_to_non_nullable
 as String,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
-as List<WordTag>,
+as List<WordTag>,pronunciations: null == pronunciations ? _self._pronunciations : pronunciations // ignore: cast_nullable_to_non_nullable
+as List<WordPronunciation>,senses: null == senses ? _self._senses : senses // ignore: cast_nullable_to_non_nullable
+as List<WordSense>,
   ));
 }
 
@@ -1447,7 +1495,7 @@ as List<WordTag>,
 /// @nodoc
 mixin _$Card {
 
- int get id; int get deckId; int? get wordId; String get front; String get back; double get stability; double get difficulty; int get state; int get reps; int get lapses; int get learningSteps; int get interval; String get due; String? get lastReview; String get createdAt; WordBrief? get word;
+ int get id; int get deckId; int? get wordId; String get front; String get back; String get contentFormat; List<CardMedia> get media; CardPresentation get presentation; double get stability; double get difficulty; int get state; int get reps; int get lapses; int get learningSteps; int get interval; String get due; String? get lastReview; String get createdAt; WordBrief? get word;
 /// Create a copy of Card
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1461,20 +1509,20 @@ $CardCopyWith<Card> get copyWith => _$CardCopyWithImpl<Card>(this as Card, _$ide
 @override
 bool operator ==(Object other) {
   final _this = this as Card;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Card&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.deckId, _this.deckId) || other.deckId == _this.deckId)&&(identical(other.wordId, _this.wordId) || other.wordId == _this.wordId)&&(identical(other.front, _this.front) || other.front == _this.front)&&(identical(other.back, _this.back) || other.back == _this.back)&&(identical(other.stability, _this.stability) || other.stability == _this.stability)&&(identical(other.difficulty, _this.difficulty) || other.difficulty == _this.difficulty)&&(identical(other.state, _this.state) || other.state == _this.state)&&(identical(other.reps, _this.reps) || other.reps == _this.reps)&&(identical(other.lapses, _this.lapses) || other.lapses == _this.lapses)&&(identical(other.learningSteps, _this.learningSteps) || other.learningSteps == _this.learningSteps)&&(identical(other.interval, _this.interval) || other.interval == _this.interval)&&(identical(other.due, _this.due) || other.due == _this.due)&&(identical(other.lastReview, _this.lastReview) || other.lastReview == _this.lastReview)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.word, _this.word) || other.word == _this.word));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Card&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.deckId, _this.deckId) || other.deckId == _this.deckId)&&(identical(other.wordId, _this.wordId) || other.wordId == _this.wordId)&&(identical(other.front, _this.front) || other.front == _this.front)&&(identical(other.back, _this.back) || other.back == _this.back)&&(identical(other.contentFormat, _this.contentFormat) || other.contentFormat == _this.contentFormat)&&const DeepCollectionEquality().equals(other.media, _this.media)&&(identical(other.presentation, _this.presentation) || other.presentation == _this.presentation)&&(identical(other.stability, _this.stability) || other.stability == _this.stability)&&(identical(other.difficulty, _this.difficulty) || other.difficulty == _this.difficulty)&&(identical(other.state, _this.state) || other.state == _this.state)&&(identical(other.reps, _this.reps) || other.reps == _this.reps)&&(identical(other.lapses, _this.lapses) || other.lapses == _this.lapses)&&(identical(other.learningSteps, _this.learningSteps) || other.learningSteps == _this.learningSteps)&&(identical(other.interval, _this.interval) || other.interval == _this.interval)&&(identical(other.due, _this.due) || other.due == _this.due)&&(identical(other.lastReview, _this.lastReview) || other.lastReview == _this.lastReview)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.word, _this.word) || other.word == _this.word));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as Card;
-  return Object.hash(runtimeType,_this.id,_this.deckId,_this.wordId,_this.front,_this.back,_this.stability,_this.difficulty,_this.state,_this.reps,_this.lapses,_this.learningSteps,_this.interval,_this.due,_this.lastReview,_this.createdAt,_this.word);
+  return Object.hashAll([runtimeType,_this.id,_this.deckId,_this.wordId,_this.front,_this.back,_this.contentFormat,const DeepCollectionEquality().hash(_this.media),_this.presentation,_this.stability,_this.difficulty,_this.state,_this.reps,_this.lapses,_this.learningSteps,_this.interval,_this.due,_this.lastReview,_this.createdAt,_this.word]);
 }
 
 @override
 String toString() {
   final _this = this as Card;
-  return 'Card(id: ${_this.id}, deckId: ${_this.deckId}, wordId: ${_this.wordId}, front: ${_this.front}, back: ${_this.back}, stability: ${_this.stability}, difficulty: ${_this.difficulty}, state: ${_this.state}, reps: ${_this.reps}, lapses: ${_this.lapses}, learningSteps: ${_this.learningSteps}, interval: ${_this.interval}, due: ${_this.due}, lastReview: ${_this.lastReview}, createdAt: ${_this.createdAt}, word: ${_this.word})';
+  return 'Card(id: ${_this.id}, deckId: ${_this.deckId}, wordId: ${_this.wordId}, front: ${_this.front}, back: ${_this.back}, contentFormat: ${_this.contentFormat}, media: ${_this.media}, presentation: ${_this.presentation}, stability: ${_this.stability}, difficulty: ${_this.difficulty}, state: ${_this.state}, reps: ${_this.reps}, lapses: ${_this.lapses}, learningSteps: ${_this.learningSteps}, interval: ${_this.interval}, due: ${_this.due}, lastReview: ${_this.lastReview}, createdAt: ${_this.createdAt}, word: ${_this.word})';
 }
 
 
@@ -1485,11 +1533,11 @@ abstract mixin class $CardCopyWith<$Res>  {
   factory $CardCopyWith(Card value, $Res Function(Card) _then) = _$CardCopyWithImpl;
 @useResult
 $Res call({
- int id, int deckId, int? wordId, String front, String back, double stability, double difficulty, int state, int reps, int lapses, int learningSteps, int interval, String due, String? lastReview, String createdAt, WordBrief? word
+ int id, int deckId, int? wordId, String front, String back, String contentFormat, List<CardMedia> media, CardPresentation presentation, double stability, double difficulty, int state, int reps, int lapses, int learningSteps, int interval, String due, String? lastReview, String createdAt, WordBrief? word
 });
 
 
-$WordBriefCopyWith<$Res>? get word;
+$CardPresentationCopyWith<$Res> get presentation;$WordBriefCopyWith<$Res>? get word;
 
 }
 /// @nodoc
@@ -1502,14 +1550,17 @@ class _$CardCopyWithImpl<$Res>
 
 /// Create a copy of Card
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deckId = null,Object? wordId = freezed,Object? front = null,Object? back = null,Object? stability = null,Object? difficulty = null,Object? state = null,Object? reps = null,Object? lapses = null,Object? learningSteps = null,Object? interval = null,Object? due = null,Object? lastReview = freezed,Object? createdAt = null,Object? word = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? deckId = null,Object? wordId = freezed,Object? front = null,Object? back = null,Object? contentFormat = null,Object? media = null,Object? presentation = null,Object? stability = null,Object? difficulty = null,Object? state = null,Object? reps = null,Object? lapses = null,Object? learningSteps = null,Object? interval = null,Object? due = null,Object? lastReview = freezed,Object? createdAt = null,Object? word = freezed,}) {
   return _then(Card(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,deckId: null == deckId ? _self.deckId : deckId // ignore: cast_nullable_to_non_nullable
 as int,wordId: freezed == wordId ? _self.wordId : wordId // ignore: cast_nullable_to_non_nullable
 as int?,front: null == front ? _self.front : front // ignore: cast_nullable_to_non_nullable
 as String,back: null == back ? _self.back : back // ignore: cast_nullable_to_non_nullable
-as String,stability: null == stability ? _self.stability : stability // ignore: cast_nullable_to_non_nullable
+as String,contentFormat: null == contentFormat ? _self.contentFormat : contentFormat // ignore: cast_nullable_to_non_nullable
+as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
+as List<CardMedia>,presentation: null == presentation ? _self.presentation : presentation // ignore: cast_nullable_to_non_nullable
+as CardPresentation,stability: null == stability ? _self.stability : stability // ignore: cast_nullable_to_non_nullable
 as double,difficulty: null == difficulty ? _self.difficulty : difficulty // ignore: cast_nullable_to_non_nullable
 as double,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
 as int,reps: null == reps ? _self.reps : reps // ignore: cast_nullable_to_non_nullable
@@ -1524,6 +1575,15 @@ as WordBrief?,
   ));
 }
 /// Create a copy of Card
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CardPresentationCopyWith<$Res> get presentation {
+
+  return $CardPresentationCopyWith<$Res>(_self.presentation, (value) {
+    return _then(_self.copyWith(presentation: value));
+  });
+}/// Create a copy of Card
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -1614,10 +1674,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int deckId,  int? wordId,  String front,  String back,  double stability,  double difficulty,  int state,  int reps,  int lapses,  int learningSteps,  int interval,  String due,  String? lastReview,  String createdAt,  WordBrief? word)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int deckId,  int? wordId,  String front,  String back,  String contentFormat,  List<CardMedia> media,  CardPresentation presentation,  double stability,  double difficulty,  int state,  int reps,  int lapses,  int learningSteps,  int interval,  String due,  String? lastReview,  String createdAt,  WordBrief? word)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Card() when $default != null:
-return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.stability,_that.difficulty,_that.state,_that.reps,_that.lapses,_that.learningSteps,_that.interval,_that.due,_that.lastReview,_that.createdAt,_that.word);case _:
+return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.contentFormat,_that.media,_that.presentation,_that.stability,_that.difficulty,_that.state,_that.reps,_that.lapses,_that.learningSteps,_that.interval,_that.due,_that.lastReview,_that.createdAt,_that.word);case _:
   return orElse();
 
 }
@@ -1635,10 +1695,10 @@ return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int deckId,  int? wordId,  String front,  String back,  double stability,  double difficulty,  int state,  int reps,  int lapses,  int learningSteps,  int interval,  String due,  String? lastReview,  String createdAt,  WordBrief? word)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int deckId,  int? wordId,  String front,  String back,  String contentFormat,  List<CardMedia> media,  CardPresentation presentation,  double stability,  double difficulty,  int state,  int reps,  int lapses,  int learningSteps,  int interval,  String due,  String? lastReview,  String createdAt,  WordBrief? word)  $default,) {final _that = this;
 switch (_that) {
 case _Card():
-return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.stability,_that.difficulty,_that.state,_that.reps,_that.lapses,_that.learningSteps,_that.interval,_that.due,_that.lastReview,_that.createdAt,_that.word);}
+return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.contentFormat,_that.media,_that.presentation,_that.stability,_that.difficulty,_that.state,_that.reps,_that.lapses,_that.learningSteps,_that.interval,_that.due,_that.lastReview,_that.createdAt,_that.word);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -1652,10 +1712,10 @@ return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int deckId,  int? wordId,  String front,  String back,  double stability,  double difficulty,  int state,  int reps,  int lapses,  int learningSteps,  int interval,  String due,  String? lastReview,  String createdAt,  WordBrief? word)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int deckId,  int? wordId,  String front,  String back,  String contentFormat,  List<CardMedia> media,  CardPresentation presentation,  double stability,  double difficulty,  int state,  int reps,  int lapses,  int learningSteps,  int interval,  String due,  String? lastReview,  String createdAt,  WordBrief? word)?  $default,) {final _that = this;
 switch (_that) {
 case _Card() when $default != null:
-return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.stability,_that.difficulty,_that.state,_that.reps,_that.lapses,_that.learningSteps,_that.interval,_that.due,_that.lastReview,_that.createdAt,_that.word);case _:
+return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.contentFormat,_that.media,_that.presentation,_that.stability,_that.difficulty,_that.state,_that.reps,_that.lapses,_that.learningSteps,_that.interval,_that.due,_that.lastReview,_that.createdAt,_that.word);case _:
   return null;
 
 }
@@ -1667,7 +1727,7 @@ return $default(_that.id,_that.deckId,_that.wordId,_that.front,_that.back,_that.
 @JsonSerializable()
 
 class _Card implements Card {
-  const _Card({this.id = 0, this.deckId = 0, this.wordId, this.front = '', this.back = '', this.stability = 0, this.difficulty = 0, this.state = 0, this.reps = 0, this.lapses = 0, this.learningSteps = 0, this.interval = 0, this.due = '', this.lastReview, this.createdAt = '', this.word});
+  const _Card({this.id = 0, this.deckId = 0, this.wordId, this.front = '', this.back = '', this.contentFormat = 'plain',  List<CardMedia> media = const <CardMedia>[], this.presentation = const CardPresentation(), this.stability = 0, this.difficulty = 0, this.state = 0, this.reps = 0, this.lapses = 0, this.learningSteps = 0, this.interval = 0, this.due = '', this.lastReview, this.createdAt = '', this.word}): _media = media;
   factory _Card.fromJson(Map<String, dynamic> json) => _$CardFromJson(json);
 
 @override@JsonKey() final  int id;
@@ -1675,6 +1735,15 @@ class _Card implements Card {
 @override final  int? wordId;
 @override@JsonKey() final  String front;
 @override@JsonKey() final  String back;
+@override@JsonKey() final  String contentFormat;
+ final  List<CardMedia> _media;
+@override@JsonKey() List<CardMedia> get media {
+  if (_media is EqualUnmodifiableListView) return _media;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_media);
+}
+
+@override@JsonKey() final  CardPresentation presentation;
 @override@JsonKey() final  double stability;
 @override@JsonKey() final  double difficulty;
 @override@JsonKey() final  int state;
@@ -1700,18 +1769,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Card&&(identical(other.id, id) || other.id == id)&&(identical(other.deckId, deckId) || other.deckId == deckId)&&(identical(other.wordId, wordId) || other.wordId == wordId)&&(identical(other.front, front) || other.front == front)&&(identical(other.back, back) || other.back == back)&&(identical(other.stability, stability) || other.stability == stability)&&(identical(other.difficulty, difficulty) || other.difficulty == difficulty)&&(identical(other.state, state) || other.state == state)&&(identical(other.reps, reps) || other.reps == reps)&&(identical(other.lapses, lapses) || other.lapses == lapses)&&(identical(other.learningSteps, learningSteps) || other.learningSteps == learningSteps)&&(identical(other.interval, interval) || other.interval == interval)&&(identical(other.due, due) || other.due == due)&&(identical(other.lastReview, lastReview) || other.lastReview == lastReview)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.word, word) || other.word == word));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Card&&(identical(other.id, id) || other.id == id)&&(identical(other.deckId, deckId) || other.deckId == deckId)&&(identical(other.wordId, wordId) || other.wordId == wordId)&&(identical(other.front, front) || other.front == front)&&(identical(other.back, back) || other.back == back)&&(identical(other.contentFormat, contentFormat) || other.contentFormat == contentFormat)&&const DeepCollectionEquality().equals(other.media, _media)&&(identical(other.presentation, presentation) || other.presentation == presentation)&&(identical(other.stability, stability) || other.stability == stability)&&(identical(other.difficulty, difficulty) || other.difficulty == difficulty)&&(identical(other.state, state) || other.state == state)&&(identical(other.reps, reps) || other.reps == reps)&&(identical(other.lapses, lapses) || other.lapses == lapses)&&(identical(other.learningSteps, learningSteps) || other.learningSteps == learningSteps)&&(identical(other.interval, interval) || other.interval == interval)&&(identical(other.due, due) || other.due == due)&&(identical(other.lastReview, lastReview) || other.lastReview == lastReview)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.word, word) || other.word == word));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,deckId,wordId,front,back,stability,difficulty,state,reps,lapses,learningSteps,interval,due,lastReview,createdAt,word);
+    return Object.hashAll([runtimeType,id,deckId,wordId,front,back,contentFormat,const DeepCollectionEquality().hash(_media),presentation,stability,difficulty,state,reps,lapses,learningSteps,interval,due,lastReview,createdAt,word]);
 }
 
 @override
 String toString() {
-    return 'Card(id: $id, deckId: $deckId, wordId: $wordId, front: $front, back: $back, stability: $stability, difficulty: $difficulty, state: $state, reps: $reps, lapses: $lapses, learningSteps: $learningSteps, interval: $interval, due: $due, lastReview: $lastReview, createdAt: $createdAt, word: $word)';
+    return 'Card(id: $id, deckId: $deckId, wordId: $wordId, front: $front, back: $back, contentFormat: $contentFormat, media: $media, presentation: $presentation, stability: $stability, difficulty: $difficulty, state: $state, reps: $reps, lapses: $lapses, learningSteps: $learningSteps, interval: $interval, due: $due, lastReview: $lastReview, createdAt: $createdAt, word: $word)';
 }
 
 
@@ -1722,11 +1791,11 @@ abstract mixin class _$CardCopyWith<$Res> implements $CardCopyWith<$Res> {
   factory _$CardCopyWith(_Card value, $Res Function(_Card) _then) = __$CardCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int deckId, int? wordId, String front, String back, double stability, double difficulty, int state, int reps, int lapses, int learningSteps, int interval, String due, String? lastReview, String createdAt, WordBrief? word
+ int id, int deckId, int? wordId, String front, String back, String contentFormat, List<CardMedia> media, CardPresentation presentation, double stability, double difficulty, int state, int reps, int lapses, int learningSteps, int interval, String due, String? lastReview, String createdAt, WordBrief? word
 });
 
 
-@override $WordBriefCopyWith<$Res>? get word;
+@override $CardPresentationCopyWith<$Res> get presentation;@override $WordBriefCopyWith<$Res>? get word;
 
 }
 /// @nodoc
@@ -1739,14 +1808,17 @@ class __$CardCopyWithImpl<$Res>
 
 /// Create a copy of Card
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deckId = null,Object? wordId = freezed,Object? front = null,Object? back = null,Object? stability = null,Object? difficulty = null,Object? state = null,Object? reps = null,Object? lapses = null,Object? learningSteps = null,Object? interval = null,Object? due = null,Object? lastReview = freezed,Object? createdAt = null,Object? word = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? deckId = null,Object? wordId = freezed,Object? front = null,Object? back = null,Object? contentFormat = null,Object? media = null,Object? presentation = null,Object? stability = null,Object? difficulty = null,Object? state = null,Object? reps = null,Object? lapses = null,Object? learningSteps = null,Object? interval = null,Object? due = null,Object? lastReview = freezed,Object? createdAt = null,Object? word = freezed,}) {
   return _then(_Card(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,deckId: null == deckId ? _self.deckId : deckId // ignore: cast_nullable_to_non_nullable
 as int,wordId: freezed == wordId ? _self.wordId : wordId // ignore: cast_nullable_to_non_nullable
 as int?,front: null == front ? _self.front : front // ignore: cast_nullable_to_non_nullable
 as String,back: null == back ? _self.back : back // ignore: cast_nullable_to_non_nullable
-as String,stability: null == stability ? _self.stability : stability // ignore: cast_nullable_to_non_nullable
+as String,contentFormat: null == contentFormat ? _self.contentFormat : contentFormat // ignore: cast_nullable_to_non_nullable
+as String,media: null == media ? _self._media : media // ignore: cast_nullable_to_non_nullable
+as List<CardMedia>,presentation: null == presentation ? _self.presentation : presentation // ignore: cast_nullable_to_non_nullable
+as CardPresentation,stability: null == stability ? _self.stability : stability // ignore: cast_nullable_to_non_nullable
 as double,difficulty: null == difficulty ? _self.difficulty : difficulty // ignore: cast_nullable_to_non_nullable
 as double,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
 as int,reps: null == reps ? _self.reps : reps // ignore: cast_nullable_to_non_nullable
@@ -1762,6 +1834,15 @@ as WordBrief?,
 }
 
 /// Create a copy of Card
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CardPresentationCopyWith<$Res> get presentation {
+
+  return $CardPresentationCopyWith<$Res>(_self.presentation, (value) {
+    return _then(_self.copyWith(presentation: value));
+  });
+}/// Create a copy of Card
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

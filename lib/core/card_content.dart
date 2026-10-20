@@ -15,7 +15,7 @@ class CardContent {
     final lines = back.split('\n').where((l) => l.trim().isNotEmpty).toList();
     String? phonetic;
     var start = 0;
-    if (lines.isNotEmpty && lines[0].startsWith('/')) {
+    if (lines.isNotEmpty && RegExp(r'^/[^\n]+/$').hasMatch(lines[0])) {
       phonetic = lines[0];
       start = 1;
     }

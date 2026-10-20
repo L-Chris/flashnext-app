@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'study.dart';
+
 part 'due_queue.freezed.dart';
 part 'due_queue.g.dart';
 
@@ -13,7 +15,8 @@ sealed class QueueCounts with _$QueueCounts {
     @Default(0) int hiddenByLimit,
   }) = _QueueCounts;
 
-  factory QueueCounts.fromJson(Map<String, dynamic> json) => _$QueueCountsFromJson(json);
+  factory QueueCounts.fromJson(Map<String, dynamic> json) =>
+      _$QueueCountsFromJson(json);
 }
 
 @freezed
@@ -36,9 +39,11 @@ sealed class DueQueue with _$DueQueue {
     @Default(<Card>[]) List<Card> cards,
     @Default(Usage()) Usage usage,
     @Default(QueueCounts()) QueueCounts counts,
+    @Default(ReviewOptions()) ReviewOptions reviewOptions,
   }) = _DueQueue;
 
-  factory DueQueue.fromJson(Map<String, dynamic> json) => _$DueQueueFromJson(json);
+  factory DueQueue.fromJson(Map<String, dynamic> json) =>
+      _$DueQueueFromJson(json);
 }
 
 @freezed
@@ -51,7 +56,8 @@ sealed class WordTag with _$WordTag {
     @Default('') String label,
   }) = _WordTag;
 
-  factory WordTag.fromJson(Map<String, dynamic> json) => _$WordTagFromJson(json);
+  factory WordTag.fromJson(Map<String, dynamic> json) =>
+      _$WordTagFromJson(json);
 }
 
 @freezed
@@ -59,14 +65,20 @@ sealed class WordBrief with _$WordBrief {
   const factory WordBrief({
     @Default(0) int id,
     @Default('') String headword,
+    @Default('en') String language,
+    @Default('') String reading,
+    @Default('') String romaji,
     int? rank,
     @Default('') String pos,
     @Default('') String phonetic,
     @Default('') String translation,
     @Default(<WordTag>[]) List<WordTag> tags,
+    @Default(<WordPronunciation>[]) List<WordPronunciation> pronunciations,
+    @Default(<WordSense>[]) List<WordSense> senses,
   }) = _WordBrief;
 
-  factory WordBrief.fromJson(Map<String, dynamic> json) => _$WordBriefFromJson(json);
+  factory WordBrief.fromJson(Map<String, dynamic> json) =>
+      _$WordBriefFromJson(json);
 }
 
 @freezed
@@ -77,6 +89,9 @@ sealed class Card with _$Card {
     int? wordId,
     @Default('') String front,
     @Default('') String back,
+    @Default('plain') String contentFormat,
+    @Default(<CardMedia>[]) List<CardMedia> media,
+    @Default(CardPresentation()) CardPresentation presentation,
     @Default(0) double stability,
     @Default(0) double difficulty,
     @Default(0) int state,

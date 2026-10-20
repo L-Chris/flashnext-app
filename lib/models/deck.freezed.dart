@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Deck {
 
- int get id; String get name; String get description; String get createdAt; int get dueCount; QueueCounts get counts; Usage get usage;
+ int get id; String get name; String get description; String get language; String get createdAt; int get dueCount; QueueCounts get counts; Usage get usage;
 /// Create a copy of Deck
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $DeckCopyWith<Deck> get copyWith => _$DeckCopyWithImpl<Deck>(this as Deck, _$ide
 @override
 bool operator ==(Object other) {
   final _this = this as Deck;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Deck&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.dueCount, _this.dueCount) || other.dueCount == _this.dueCount)&&(identical(other.counts, _this.counts) || other.counts == _this.counts)&&(identical(other.usage, _this.usage) || other.usage == _this.usage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Deck&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.dueCount, _this.dueCount) || other.dueCount == _this.dueCount)&&(identical(other.counts, _this.counts) || other.counts == _this.counts)&&(identical(other.usage, _this.usage) || other.usage == _this.usage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as Deck;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.description,_this.createdAt,_this.dueCount,_this.counts,_this.usage);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.description,_this.language,_this.createdAt,_this.dueCount,_this.counts,_this.usage);
 }
 
 @override
 String toString() {
   final _this = this as Deck;
-  return 'Deck(id: ${_this.id}, name: ${_this.name}, description: ${_this.description}, createdAt: ${_this.createdAt}, dueCount: ${_this.dueCount}, counts: ${_this.counts}, usage: ${_this.usage})';
+  return 'Deck(id: ${_this.id}, name: ${_this.name}, description: ${_this.description}, language: ${_this.language}, createdAt: ${_this.createdAt}, dueCount: ${_this.dueCount}, counts: ${_this.counts}, usage: ${_this.usage})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $DeckCopyWith<$Res>  {
   factory $DeckCopyWith(Deck value, $Res Function(Deck) _then) = _$DeckCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, String description, String createdAt, int dueCount, QueueCounts counts, Usage usage
+ int id, String name, String description, String language, String createdAt, int dueCount, QueueCounts counts, Usage usage
 });
 
 
@@ -71,11 +71,12 @@ class _$DeckCopyWithImpl<$Res>
 
 /// Create a copy of Deck
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? createdAt = null,Object? dueCount = null,Object? counts = null,Object? usage = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = null,Object? language = null,Object? createdAt = null,Object? dueCount = null,Object? counts = null,Object? usage = null,}) {
   return _then(Deck(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,dueCount: null == dueCount ? _self.dueCount : dueCount // ignore: cast_nullable_to_non_nullable
 as int,counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
@@ -88,7 +89,7 @@ as Usage,
 @override
 @pragma('vm:prefer-inline')
 $QueueCountsCopyWith<$Res> get counts {
-  
+
   return $QueueCountsCopyWith<$Res>(_self.counts, (value) {
     return _then(_self.copyWith(counts: value));
   });
@@ -97,7 +98,7 @@ $QueueCountsCopyWith<$Res> get counts {
 @override
 @pragma('vm:prefer-inline')
 $UsageCopyWith<$Res> get usage {
-  
+
   return $UsageCopyWith<$Res>(_self.usage, (value) {
     return _then(_self.copyWith(usage: value));
   });
@@ -180,10 +181,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String description,  String createdAt,  int dueCount,  QueueCounts counts,  Usage usage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String description,  String language,  String createdAt,  int dueCount,  QueueCounts counts,  Usage usage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Deck() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.createdAt,_that.dueCount,_that.counts,_that.usage);case _:
+return $default(_that.id,_that.name,_that.description,_that.language,_that.createdAt,_that.dueCount,_that.counts,_that.usage);case _:
   return orElse();
 
 }
@@ -201,10 +202,10 @@ return $default(_that.id,_that.name,_that.description,_that.createdAt,_that.dueC
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String description,  String createdAt,  int dueCount,  QueueCounts counts,  Usage usage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String description,  String language,  String createdAt,  int dueCount,  QueueCounts counts,  Usage usage)  $default,) {final _that = this;
 switch (_that) {
 case _Deck():
-return $default(_that.id,_that.name,_that.description,_that.createdAt,_that.dueCount,_that.counts,_that.usage);}
+return $default(_that.id,_that.name,_that.description,_that.language,_that.createdAt,_that.dueCount,_that.counts,_that.usage);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -218,10 +219,10 @@ return $default(_that.id,_that.name,_that.description,_that.createdAt,_that.dueC
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String description,  String createdAt,  int dueCount,  QueueCounts counts,  Usage usage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String description,  String language,  String createdAt,  int dueCount,  QueueCounts counts,  Usage usage)?  $default,) {final _that = this;
 switch (_that) {
 case _Deck() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.createdAt,_that.dueCount,_that.counts,_that.usage);case _:
+return $default(_that.id,_that.name,_that.description,_that.language,_that.createdAt,_that.dueCount,_that.counts,_that.usage);case _:
   return null;
 
 }
@@ -233,12 +234,13 @@ return $default(_that.id,_that.name,_that.description,_that.createdAt,_that.dueC
 @JsonSerializable()
 
 class _Deck implements Deck {
-  const _Deck({this.id = 0, this.name = '', this.description = '', this.createdAt = '', this.dueCount = 0, this.counts = const QueueCounts(), this.usage = const Usage()});
+  const _Deck({this.id = 0, this.name = '', this.description = '', this.language = 'en', this.createdAt = '', this.dueCount = 0, this.counts = const QueueCounts(), this.usage = const Usage()});
   factory _Deck.fromJson(Map<String, dynamic> json) => _$DeckFromJson(json);
 
 @override@JsonKey() final  int id;
 @override@JsonKey() final  String name;
 @override@JsonKey() final  String description;
+@override@JsonKey() final  String language;
 @override@JsonKey() final  String createdAt;
 @override@JsonKey() final  int dueCount;
 @override@JsonKey() final  QueueCounts counts;
@@ -257,18 +259,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Deck&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.dueCount, dueCount) || other.dueCount == dueCount)&&(identical(other.counts, counts) || other.counts == counts)&&(identical(other.usage, usage) || other.usage == usage));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Deck&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.language, language) || other.language == language)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.dueCount, dueCount) || other.dueCount == dueCount)&&(identical(other.counts, counts) || other.counts == counts)&&(identical(other.usage, usage) || other.usage == usage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,description,createdAt,dueCount,counts,usage);
+    return Object.hash(runtimeType,id,name,description,language,createdAt,dueCount,counts,usage);
 }
 
 @override
 String toString() {
-    return 'Deck(id: $id, name: $name, description: $description, createdAt: $createdAt, dueCount: $dueCount, counts: $counts, usage: $usage)';
+    return 'Deck(id: $id, name: $name, description: $description, language: $language, createdAt: $createdAt, dueCount: $dueCount, counts: $counts, usage: $usage)';
 }
 
 
@@ -279,7 +281,7 @@ abstract mixin class _$DeckCopyWith<$Res> implements $DeckCopyWith<$Res> {
   factory _$DeckCopyWith(_Deck value, $Res Function(_Deck) _then) = __$DeckCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, String description, String createdAt, int dueCount, QueueCounts counts, Usage usage
+ int id, String name, String description, String language, String createdAt, int dueCount, QueueCounts counts, Usage usage
 });
 
 
@@ -296,11 +298,12 @@ class __$DeckCopyWithImpl<$Res>
 
 /// Create a copy of Deck
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? createdAt = null,Object? dueCount = null,Object? counts = null,Object? usage = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = null,Object? language = null,Object? createdAt = null,Object? dueCount = null,Object? counts = null,Object? usage = null,}) {
   return _then(_Deck(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,dueCount: null == dueCount ? _self.dueCount : dueCount // ignore: cast_nullable_to_non_nullable
 as int,counts: null == counts ? _self.counts : counts // ignore: cast_nullable_to_non_nullable
@@ -314,7 +317,7 @@ as Usage,
 @override
 @pragma('vm:prefer-inline')
 $QueueCountsCopyWith<$Res> get counts {
-  
+
   return $QueueCountsCopyWith<$Res>(_self.counts, (value) {
     return _then(_self.copyWith(counts: value));
   });
@@ -323,7 +326,7 @@ $QueueCountsCopyWith<$Res> get counts {
 @override
 @pragma('vm:prefer-inline')
 $UsageCopyWith<$Res> get usage {
-  
+
   return $UsageCopyWith<$Res>(_self.usage, (value) {
     return _then(_self.copyWith(usage: value));
   });

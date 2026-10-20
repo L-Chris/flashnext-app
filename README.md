@@ -9,9 +9,16 @@ FlashNext 的 Android 在线复习客户端，使用 Flutter、Riverpod、Dio �
 
 本工程已从 `../flashnext/app` 迁入；后端与 Web 工程位于 `../flashnext`。
 
-## 待接入功能交接
+## 学习设置与复习展示
 
-每牌组学习设置、数学公式、卡片音频和自动显示答案的接口、实现步骤、验收及样例见 [App 开发交接文档](docs/handoff/app-study-features-2026-10-20.md)。范围仅限复习展示与牌组设置，不包含新增/编辑卡片或上传音频；当前 App 功能尚未接入这些扩展。
+每张牌组最右侧齿轮打开该牌组设置，可保存每日新卡/复习额度、时区、日切点、自动播放、新卡立即显示答案和延迟自动显示答案。关闭时有未保存修改会提示放弃，保存失败保留草稿。
+
+支持服务端 Markdown/数学公式、英日词卡与正反面音频顺序播放。倒计时从内容就绪后开始，后台暂停，手动显示会取消倒计时。评分和撤销由服务器处理，队列完成后仍可撤销。
+
+设置中可查看本牌组 FSRS 参数、来源、日志数和训练门槛，手动启动训练并查看状态；不会自动重建日程。本次未开放高级手动参数或重建操作。
+
+接口和验收背景见 [App 开发交接文档](docs/handoff/app-study-features-2026-10-20.md)。范围仅限复习展示与牌组设置，不包含卡片新增/编辑、音频上传或词库导入。
+实现与验证记录见 [Android 学习功能实施记录](docs/implementation/app-study-2026-10-20.md)。
 
 ## 开发与构建
 
@@ -21,11 +28,12 @@ FlashNext 的 Android 在线复习客户端，使用 Flutter、Riverpod、Dio �
 flutter pub get
 flutter analyze
 flutter test
-flutter build apk --release
+flutter build apk --release --split-per-abi
 ```
 
 修改模型后运行 `dart run build_runner build --delete-conflicting-outputs`。
-APK 输出路径：`build/app/outputs/flutter-apk/app-release.apk`。
+APK 输出目录：`build/app/outputs/flutter-apk/`。普通手机优先选择 `app-arm64-v8a-release.apk`；32 位旧机选择 `app-armeabi-v7a-release.apk`，x86_64 设备选择对应包。
+按架构拆分，避免一个安装包携带三套引擎；各架构的 versionCode 使用相同构建号，后续升级仍应提高构建号。
 Android SDK 路径在本机的 `android/local.properties` 中配置。
 
 ## 连接服务器
@@ -52,7 +60,8 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-tag 构建成功后自动创建同名 GitHub Release，附带通用 APK `FlashNext-X.Y.Z-android.apk` 和 `SHA256SUMS.txt`。
+tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-android-arm64-v8a.apk`、`FlashNext-X.Y.Z-android-armeabi-v7a.apk`、`FlashNext-X.Y.Z-android-x86_64.apk` 和 `SHA256SUMS.txt`。
+同时保留通用 APK `FlashNext-X.Y.Z-android.apk`，确保现有 0.1.0 客户端的升级检查仍可用；普通手机下载 arm64-v8a 包即可。
 发布说明优先读取 `docs/releases/<tag>.md`，没有该文件则使用自动生成的说明。已有 Release 不会被覆盖。
 也可在 Actions → Build Android → 对应运行 → Artifacts 下载 `flashnext-android-<运行编号>`，保存 90 天。
 手动运行只构建和上传 Artifact，不创建 Release。目前只支持 Android。
@@ -60,7 +69,7 @@ tag 构建成功后自动创建同名 GitHub Release，附带通用 APK `FlashNe
 ## 应用内更新
 
 参考 Torto Android 的流程，在设置页点击“检查更新”，读取本仓库 GitHub 最新正式 Release。
-有新版本且 APK 上传完成时显示“前往下载”，在浏览器打开发布页，再由用户下载并按 Android 提示安装。
+有新版本且本机架构对应 APK 上传完成时显示“前往下载”，在浏览器下载适合本机的包，再按 Android 提示安装。兼容旧 Release 中的通用 APK。
 不自动下载或静默安装；忽略草稿、预发布和旧版本。检查更新需要访问 GitHub，不依赖内网学习服务器。
 
 ## 固定签名

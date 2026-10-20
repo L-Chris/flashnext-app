@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'network/api_client.dart';
 import '../models/deck.dart';
+import '../models/study.dart';
 
 const kDefaultBaseUrl = 'https://mem.home.rethinkos.com';
 const kBaseUrlPrefKey = 'baseUrl';
@@ -13,9 +14,9 @@ class SettingsState {
   final bool loaded;
 
   SettingsState copyWith({String? baseUrl, bool? loaded}) => SettingsState(
-        baseUrl: baseUrl ?? this.baseUrl,
-        loaded: loaded ?? this.loaded,
-      );
+    baseUrl: baseUrl ?? this.baseUrl,
+    loaded: loaded ?? this.loaded,
+  );
 }
 
 class SettingsNotifier extends Notifier<SettingsState> {
@@ -40,11 +41,25 @@ class SettingsNotifier extends Notifier<SettingsState> {
   }
 }
 
-final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(SettingsNotifier.new);
-
-final apiClientProvider = Provider<ApiClient>(
-  (ref) => ApiClient(ref.watch(settingsProvider).baseUrl),
+final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(
+  SettingsNotifier.new,
 );
+
+final apiClientProvider = Provider<ApiClient>((ref) {
+  final client = ApiClient(
+    ref.watch(settingsProvider.select((s) => s.baseUrl)),
+  );
+  ref.onDispose(client.dispose);
+  return client;
+});
+
+typedef DeckSettingsKey = ({String server, int deckId});
+final deckSettingsProvider = FutureProvider.autoDispose
+    .family<DeckSettings, DeckSettingsKey>((ref, key) {
+      final api = ref.watch(apiClientProvider);
+      if (api.baseUrl != key.server) throw StateError('服务器已切换，请重新打开牌组设置');
+      return api.deckSettings(key.deckId);
+    });
 
 final decksProvider = FutureProvider<List<Deck>>(
   (ref) => ref.watch(apiClientProvider).decks(),

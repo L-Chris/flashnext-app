@@ -10,6 +10,7 @@ _Deck _$DeckFromJson(Map<String, dynamic> json) => _Deck(
   id: (json['id'] as num?)?.toInt() ?? 0,
   name: json['name'] as String? ?? '',
   description: json['description'] as String? ?? '',
+  language: json['language'] as String? ?? 'en',
   createdAt: json['createdAt'] as String? ?? '',
   dueCount: (json['dueCount'] as num?)?.toInt() ?? 0,
   counts: json['counts'] == null
@@ -24,6 +25,7 @@ Map<String, dynamic> _$DeckToJson(_Deck instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'description': instance.description,
+  'language': instance.language,
   'createdAt': instance.createdAt,
   'dueCount': instance.dueCount,
   'counts': instance.counts,

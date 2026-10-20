@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/providers.dart';
 import '../../models/deck.dart';
+import 'deck_settings_sheet.dart';
 
 class DecksScreen extends ConsumerStatefulWidget {
   const DecksScreen({super.key});
@@ -27,8 +28,12 @@ class _DecksScreenState extends ConsumerState<DecksScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/branding/logo.png', width: 32, height: 32,
-                excludeFromSemantics: true),
+            Image.asset(
+              'assets/branding/logo.png',
+              width: 32,
+              height: 32,
+              excludeFromSemantics: true,
+            ),
             const SizedBox(width: 8),
             const Text('FlashNext'),
           ],
@@ -48,7 +53,10 @@ class _DecksScreenState extends ConsumerState<DecksScreen> {
       ),
       body: decks.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorView(message: '$e', onRetry: () => ref.invalidate(decksProvider)),
+        error: (e, _) => _ErrorView(
+          message: '$e',
+          onRetry: () => ref.invalidate(decksProvider),
+        ),
         data: (list) => list.isEmpty
             ? const Center(child: Text('还没有牌组'))
             : RefreshIndicator(
@@ -79,10 +87,23 @@ class _DeckTile extends StatelessWidget {
         subtitle: Text(
           '待复习 ${deck.dueCount} · 日内 ${deck.counts.intraday} · 新卡 ${deck.counts.fresh}',
         ),
-        trailing: deck.dueCount > 0
-            ? Chip(label: Text('${deck.dueCount}'))
-            : const Icon(Icons.check_circle_outline),
-        onTap: () => context.push('/review/${deck.id}?name=${Uri.encodeComponent(deck.name)}'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (deck.dueCount > 0)
+              Chip(label: Text('${deck.dueCount}'))
+            else
+              const Icon(Icons.check_circle_outline),
+            IconButton(
+              tooltip: '${deck.name}的学习设置',
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => showDeckSettings(context, deck.id, deck.name),
+            ),
+          ],
+        ),
+        onTap: () => context.push(
+          '/review/${deck.id}?name=${Uri.encodeComponent(deck.name)}',
+        ),
       ),
     );
   }
