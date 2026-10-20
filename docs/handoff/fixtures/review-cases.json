@@ -1,0 +1,242 @@
+{
+  "synthetic": true,
+  "note": "Mock IDs and media URL only; do not send these IDs to a live server.",
+  "cases": [
+    {
+      "name": "timed_plain",
+      "settings": {
+        "data": {
+          "deckId": 41,
+          "newPerDay": 25,
+          "reviewPerDay": 500,
+          "timezone": "Asia/Shanghai",
+          "rolloverHour": 4,
+          "version": 3,
+          "audioAutoplay": false,
+          "showNewCardAnswerImmediately": false,
+          "autoRevealAnswerSeconds": 10
+        }
+      },
+      "response": {
+        "data": {
+          "cards": [
+            {
+              "id": 900001,
+              "deckId": 41,
+              "wordId": 900101,
+              "front": "derive",
+              "back": "/dɪˈraɪv/\nv. 源自；获得",
+              "contentFormat": "plain",
+              "media": [],
+              "state": 0,
+              "reps": 0,
+              "lapses": 0,
+              "stability": 0,
+              "difficulty": 0,
+              "learningSteps": 0,
+              "interval": 0,
+              "due": "2026-10-20T00:00:00.000Z",
+              "lastReview": null,
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "word": {
+                "id": 900101,
+                "language": "en",
+                "headword": "derive",
+                "rank": null,
+                "pos": "v.",
+                "phonetic": "/dɪˈraɪv/",
+                "translation": "v. 源自；获得",
+                "tags": []
+              },
+              "presentation": {
+                "audioAutoplay": false,
+                "answerRevealAfterMs": 10000,
+                "settingsVersion": 3
+              }
+            }
+          ],
+          "reviewOptions": {
+            "audioAutoplay": false,
+            "showNewCardAnswerImmediately": false,
+            "autoRevealAnswerSeconds": 10,
+            "settingsVersion": 3
+          },
+          "usage": {
+            "newCount": 0,
+            "reviewCount": 0,
+            "newLimit": 25,
+            "reviewLimit": 500,
+            "newRemaining": 25,
+            "reviewRemaining": 500
+          },
+          "counts": {
+            "intraday": 0,
+            "review": 0,
+            "fresh": 1,
+            "queued": 1,
+            "hiddenByLimit": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "immediate_japanese_audio",
+      "settings": {
+        "data": {
+          "deckId": 42,
+          "newPerDay": 25,
+          "reviewPerDay": 500,
+          "timezone": "Asia/Shanghai",
+          "rolloverHour": 4,
+          "version": 5,
+          "audioAutoplay": true,
+          "showNewCardAnswerImmediately": true,
+          "autoRevealAnswerSeconds": 10
+        }
+      },
+      "response": {
+        "data": {
+          "cards": [
+            {
+              "id": 900002,
+              "deckId": 42,
+              "wordId": 900102,
+              "front": "学生",
+              "back": "がくせい\n名词\n学生",
+              "contentFormat": "plain",
+              "media": [
+                {
+                  "id": "00000000-0000-4000-8000-000000000002",
+                  "mediaId": "00000000-0000-4000-8000-000000000002",
+                  "mimeType": "audio/mpeg",
+                  "bytes": 12000,
+                  "originalName": "学生（がくせい）.mp3",
+                  "createdAt": "2026-10-20T00:00:00.000Z",
+                  "url": "/api/media/00000000-0000-4000-8000-000000000002/content",
+                  "side": "back",
+                  "position": 0
+                }
+              ],
+              "state": 0,
+              "reps": 0,
+              "lapses": 0,
+              "stability": 0,
+              "difficulty": 0,
+              "learningSteps": 0,
+              "interval": 0,
+              "due": "2026-10-20T00:00:00.000Z",
+              "lastReview": null,
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "word": {
+                "id": 900102,
+                "language": "ja",
+                "headword": "学生",
+                "reading": "がくせい",
+                "romaji": "gakusei",
+                "pos": "名词",
+                "phonetic": "",
+                "translation": "学生",
+                "rank": null,
+                "tags": []
+              },
+              "presentation": {
+                "audioAutoplay": true,
+                "answerRevealAfterMs": 0,
+                "settingsVersion": 5
+              }
+            }
+          ],
+          "reviewOptions": {
+            "audioAutoplay": true,
+            "showNewCardAnswerImmediately": true,
+            "autoRevealAnswerSeconds": 10,
+            "settingsVersion": 5
+          },
+          "usage": {
+            "newCount": 0,
+            "reviewCount": 0,
+            "newLimit": 25,
+            "reviewLimit": 500,
+            "newRemaining": 25,
+            "reviewRemaining": 500
+          },
+          "counts": {
+            "intraday": 0,
+            "review": 0,
+            "fresh": 1,
+            "queued": 1,
+            "hiddenByLimit": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "manual_math",
+      "settings": {
+        "data": {
+          "deckId": 43,
+          "newPerDay": 25,
+          "reviewPerDay": 500,
+          "timezone": "Asia/Shanghai",
+          "rolloverHour": 4,
+          "version": 7,
+          "audioAutoplay": false,
+          "showNewCardAnswerImmediately": false,
+          "autoRevealAnswerSeconds": null
+        }
+      },
+      "response": {
+        "data": {
+          "cards": [
+            {
+              "id": 900003,
+              "deckId": 43,
+              "wordId": null,
+              "front": "求解 \\(x^2=4\\)",
+              "back": "$$x=\\pm 2$$",
+              "contentFormat": "markdown_math",
+              "media": [],
+              "state": 2,
+              "reps": 7,
+              "lapses": 0,
+              "stability": 10,
+              "difficulty": 5,
+              "learningSteps": 0,
+              "interval": 5,
+              "due": "2026-10-20T00:00:00.000Z",
+              "lastReview": null,
+              "createdAt": "2026-10-20T00:00:00.000Z",
+              "word": null,
+              "presentation": {
+                "audioAutoplay": false,
+                "answerRevealAfterMs": null,
+                "settingsVersion": 7
+              }
+            }
+          ],
+          "reviewOptions": {
+            "audioAutoplay": false,
+            "showNewCardAnswerImmediately": false,
+            "autoRevealAnswerSeconds": null,
+            "settingsVersion": 7
+          },
+          "usage": {
+            "newCount": 0,
+            "reviewCount": 0,
+            "newLimit": 25,
+            "reviewLimit": 500,
+            "newRemaining": 25,
+            "reviewRemaining": 500
+          },
+          "counts": {
+            "intraday": 0,
+            "review": 1,
+            "fresh": 0,
+            "queued": 1,
+            "hiddenByLimit": 0
+          }
+        }
+      }
+    }
+  ]
+}

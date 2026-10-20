@@ -1,0 +1,27 @@
+{
+  "request": {
+    "front": "求解 \\(x^2=4\\)",
+    "back": "$$x=\\pm 2$$",
+    "contentFormat": "markdown_math"
+  },
+  "response": {
+    "message": "ok",
+    "data": {
+      "contentFormat": "markdown_math",
+      "front": {
+        "html": "<p>求解 <span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\"><semantics><mrow><msup><mi>x</mi><mn>2</mn></msup><mo>=</mo><mn>4</mn></mrow><annotation encoding=\"application/x-tex\">x^2=4</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"katex-base\"><span class=\"katex-strut\" style=\"height:0.8141em;\"></span><span class=\"mord\"><span class=\"mord mathnormal\">x</span><span class=\"msupsub\"><span class=\"vlist-t\"><span class=\"vlist-r\"><span class=\"vlist\" style=\"height:0.8141em;\"><span style=\"top:-3.063em;margin-right:0.05em;\"><span class=\"pstrut\" style=\"height:2.7em;\"></span><span class=\"katex-sizing reset-size6 size3 mtight\"><span class=\"mord mtight\">2</span></span></span></span></span></span></span></span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"katex-base\"><span class=\"katex-strut\" style=\"height:0.6444em;\"></span><span class=\"mord\">4</span></span></span></span></p>\n",
+        "errors": []
+      },
+      "back": {
+        "html": "<span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>x</mi><mo>=</mo><mo>±</mo><mn>2</mn></mrow><annotation encoding=\"application/x-tex\">x=\\pm 2</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"katex-base\"><span class=\"katex-strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">x</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"katex-base\"><span class=\"katex-strut\" style=\"height:0.7278em;vertical-align:-0.0833em;\"></span><span class=\"mord\">±</span><span class=\"mord\">2</span></span></span></span></span>\n",
+        "errors": []
+      },
+      "valid": true,
+      "renderer": {
+        "name": "katex",
+        "version": "0.19.0",
+        "cssUrl": "/api/content/assets/katex.min.css"
+      }
+    }
+  }
+}

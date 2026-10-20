@@ -1,0 +1,13 @@
+{
+  "data": {
+    "deckId": 41,
+    "newPerDay": 25,
+    "reviewPerDay": 500,
+    "timezone": "Asia/Shanghai",
+    "rolloverHour": 4,
+    "version": 3,
+    "audioAutoplay": false,
+    "showNewCardAnswerImmediately": false,
+    "autoRevealAnswerSeconds": 10
+  }
+}

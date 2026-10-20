@@ -9,6 +9,10 @@ FlashNext 的 Android 在线复习客户端，使用 Flutter、Riverpod、Dio �
 
 本工程已从 `../flashnext/app` 迁入；后端与 Web 工程位于 `../flashnext`。
 
+## 待接入功能交接
+
+每牌组学习设置、数学公式、卡片音频和自动显示答案的接口、实现步骤、验收及样例见 [App 开发交接文档](docs/handoff/app-study-features-2026-10-20.md)。范围仅限复习展示与牌组设置，不包含新增/编辑卡片或上传音频；当前 App 功能尚未接入这些扩展。
+
 ## 开发与构建
 
 在本目录运行：
