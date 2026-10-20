@@ -54,7 +54,8 @@ void main() {
       await tester.tap(find.text('训练本牌组参数'));
       await tester.pumpAndSettle();
       expect(api.starts, 1);
-      expect(find.textContaining('训练中'), findsOneWidget);
+      expect(find.text('训练中…'), findsOneWidget);
+      expect(find.textContaining('服务端任务将继续运行'), findsNothing);
       final polls = api.polls;
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
       await tester.pump(const Duration(seconds: 10));
@@ -69,7 +70,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(api.polls, greaterThan(polls));
       expect(api.paramsReads, greaterThan(1));
-      expect(find.textContaining('参数已保存'), findsOneWidget);
+      expect(find.text('训练本牌组参数'), findsOneWidget);
+      expect(find.textContaining('不会自动重建'), findsNothing);
       expect(api.starts, 1);
       await tester.pumpWidget(const SizedBox());
       await tester.pump();

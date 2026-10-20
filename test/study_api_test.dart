@@ -32,6 +32,28 @@ class RecordingAdapter implements HttpClientAdapter {
 }
 
 void main() {
+  test(
+    'shared timezone uses one global endpoint, not per-deck patches',
+    () async {
+      var timezone = 'Asia/Shanghai';
+      final adapter = RecordingAdapter((request) {
+        if (request.method == 'POST') {
+          timezone = request.data['timezone'] as String;
+        }
+        return {'timezone': timezone};
+      });
+      final api = ApiClient(
+        'https://a.test',
+        dio: Dio(BaseOptions(baseUrl: 'https://a.test/api'))
+          ..httpClientAdapter = adapter,
+      );
+      addTearDown(api.dispose);
+      expect(await api.sharedTimezone(), 'Asia/Shanghai');
+      expect(await api.saveSharedTimezone('UTC'), 'UTC');
+      expect(adapter.requests.every((r) => r.path == '/settings'), isTrue);
+      expect(adapter.requests.last.data, {'timezone': 'UTC'});
+    },
+  );
   final settings = (jsonDecode(
     File('docs/handoff/fixtures/deck-settings.json').readAsStringSync(),
   ) as Map)['data'];

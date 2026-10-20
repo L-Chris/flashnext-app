@@ -12,10 +12,15 @@ Future<void> showDeckSettings(BuildContext context, int deckId, String name) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      isDismissible: false,
+      isDismissible: true,
       enableDrag: false,
       useSafeArea: true,
-      builder: (_) => DeckSettingsSheet(deckId: deckId, name: name),
+      builder: (_) => GestureDetector(
+        key: const ValueKey('deck-settings-panel'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () {},
+        child: DeckSettingsSheet(deckId: deckId, name: name),
+      ),
     );
 
 class DeckSettingsSheet extends ConsumerStatefulWidget {
@@ -34,7 +39,6 @@ class _DeckSettingsSheetState extends ConsumerState<DeckSettingsSheet> {
   final _form = GlobalKey<FormState>();
   final _new = TextEditingController();
   final _review = TextEditingController();
-  final _timezone = TextEditingController();
   final _rollover = TextEditingController();
   final _delay = TextEditingController();
   late final ApiClient _api = ref.read(apiClientProvider);
@@ -53,7 +57,6 @@ class _DeckSettingsSheetState extends ConsumerState<DeckSettingsSheet> {
       !_serverChanged &&
       (_new.text != '${_saved!.newPerDay}' ||
           _review.text != '${_saved!.reviewPerDay}' ||
-          _timezone.text.trim() != _saved!.timezone ||
           _rollover.text != '${_saved!.rolloverHour}' ||
           _audio != _saved!.audioAutoplay ||
           _immediate != _saved!.showNewCardAnswerImmediately ||
@@ -64,7 +67,6 @@ class _DeckSettingsSheetState extends ConsumerState<DeckSettingsSheet> {
     _saved = settings;
     _new.text = '${settings.newPerDay}';
     _review.text = '${settings.reviewPerDay}';
-    _timezone.text = settings.timezone;
     _rollover.text = '${settings.rolloverHour}';
     _delay.text = '${settings.autoRevealAnswerSeconds ?? 10}';
     _audio = settings.audioAutoplay;
@@ -106,7 +108,6 @@ class _DeckSettingsSheetState extends ConsumerState<DeckSettingsSheet> {
     final draft = saved.copyWith(
       newPerDay: int.parse(_new.text),
       reviewPerDay: int.parse(_review.text),
-      timezone: _timezone.text.trim(),
       rolloverHour: int.parse(_rollover.text),
       audioAutoplay: _audio,
       showNewCardAnswerImmediately: _immediate,
@@ -144,7 +145,7 @@ class _DeckSettingsSheetState extends ConsumerState<DeckSettingsSheet> {
 
   @override
   void dispose() {
-    for (final controller in [_new, _review, _timezone, _rollover, _delay]) {
+    for (final controller in [_new, _review, _rollover, _delay]) {
       controller.dispose();
     }
     super.dispose();
@@ -212,20 +213,6 @@ class _DeckSettingsSheetState extends ConsumerState<DeckSettingsSheet> {
                           children: [
                             _integer(_new, '每日新卡额度', 0, 100000),
                             _integer(_review, '每日复习额度', 0, 100000),
-                            TextFormField(
-                              controller: _timezone,
-                              enabled: !_saving,
-                              decoration: const InputDecoration(
-                                labelText: 'IANA 时区',
-                                helperText:
-                                    '例如 Asia/Shanghai、America/New_York 或 UTC',
-                              ),
-                              onChanged: (_) => setState(() {}),
-                              validator: (value) =>
-                                  value == null || value.trim().isEmpty
-                                  ? '请输入时区'
-                                  : null,
-                            ),
                             _integer(_rollover, '日切点（小时）', 0, 23),
                             SwitchListTile(
                               contentPadding: EdgeInsets.zero,
@@ -252,9 +239,6 @@ class _DeckSettingsSheetState extends ConsumerState<DeckSettingsSheet> {
                                   : (v) => setState(() => _timed = v),
                             ),
                             if (_timed) _integer(_delay, '自动显示等待秒数', 1, 3600),
-                            const Text(
-                              '0 张额度有效；关闭自动显示后需手动显示答案。设置由服务器保存，对本牌组生效。',
-                            ),
                             if (_error != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 12),
@@ -303,7 +287,7 @@ class _DeckSettingsSheetState extends ConsumerState<DeckSettingsSheet> {
     enabled: !_saving,
     keyboardType: TextInputType.number,
     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-    decoration: InputDecoration(labelText: label, helperText: '$min–$max'),
+    decoration: InputDecoration(labelText: label),
     onChanged: (_) => setState(() {}),
     validator: (text) {
       final value = int.tryParse(text ?? '');

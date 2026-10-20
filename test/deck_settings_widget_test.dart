@@ -60,6 +60,8 @@ void main() {
       );
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
+      expect(find.text('IANA 时区'), findsNothing);
+      expect(find.textContaining('0 张额度有效'), findsNothing);
       final toggle = find.widgetWithText(SwitchListTile, '延迟自动显示答案');
       await tester.scrollUntilVisible(
         toggle,
@@ -113,12 +115,50 @@ void main() {
     await tester.pumpAndSettle();
     expect(api.patch, {'newPerDay': 0});
     expect(find.text('0'), findsOneWidget);
-    await tester.tap(find.text('返回'));
+    await tester.tapAt(const Offset(20, 20));
     await tester.pumpAndSettle();
     expect(find.text('放弃未保存的修改？'), findsOneWidget);
     await tester.tap(find.text('继续编辑'));
     await tester.pumpAndSettle();
     expect(find.text('A · 设置'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('放弃修改'));
+    await tester.pumpAndSettle();
+    expect(find.text('A · 设置'), findsNothing);
+  });
+
+  testWidgets('blank panel taps stay open, outside taps close clean sheets', (
+    tester,
+  ) async {
+    final api = SettingsApi('https://a.test');
+    addTearDown(api.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [apiClientProvider.overrideWithValue(api)],
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => showDeckSettings(context, 41, 'A'),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    final panel = tester.getRect(
+      find.byKey(const ValueKey('deck-settings-panel')),
+    );
+    await tester.tapAt(panel.topRight + const Offset(-12, 12));
+    await tester.pumpAndSettle();
+    expect(find.text('A · 设置'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    expect(find.text('A · 设置'), findsNothing);
   });
 
   test('server and deck keys isolate settings', () async {

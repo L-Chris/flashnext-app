@@ -106,15 +106,7 @@ class _FsrsPanelState extends State<FsrsPanel> with WidgetsBindingObserver {
             ],
           ),
         ],
-        if (job?.running == true) const Text('训练中，服务端任务将继续运行…'),
-        if (job?.finishedAt != null) Text('任务结束：${job!.finishedAt}'),
         if (job?.error != null) Text('训练失败：${job!.error}'),
-        if (job?.result != null)
-          Text(
-            job!.result!['saved'] == true
-                ? '训练完成，参数已保存。已有卡片日程保持不变。'
-                : '训练完成，参数未通过审计或未保存。',
-          ),
         if (_error != null)
           Text(
             _error!,
@@ -135,11 +127,10 @@ class _FsrsPanelState extends State<FsrsPanel> with WidgetsBindingObserver {
                       params.reviewCount < params.minReviews
                   ? null
                   : () => _refresh(start: true),
-              child: const Text('训练本牌组参数'),
+              child: Text(job?.running == true ? '训练中…' : '训练本牌组参数'),
             ),
           ],
         ),
-        const Text('训练在服务器执行，不会自动重建已有复习日程。'),
       ],
     );
   }

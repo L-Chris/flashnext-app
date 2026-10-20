@@ -5,6 +5,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
 import '../../core/providers.dart';
 import 'app_update_section.dart';
+import 'shared_timezone_section.dart';
+
+Future<void> showSettings(BuildContext context) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  builder: (context) => SizedBox(
+    height: MediaQuery.sizeOf(context).height * .88,
+    child: const SettingsScreen(),
+  ),
+);
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -72,6 +83,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final api = ref.watch(apiClientProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('设置')),
       body: ListView(
@@ -90,7 +102,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              FilledButton(onPressed: _save, child: const Text('保存')),
+              FilledButton(onPressed: _save, child: const Text('保存服务器')),
               const SizedBox(width: 8),
               OutlinedButton(
                 onPressed: _testing ? null : _test,
@@ -108,6 +120,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: 12),
             Text(_testResult!),
           ],
+          const SizedBox(height: 24),
+          SharedTimezoneSection(key: ValueKey(api.baseUrl), api: api),
           const SizedBox(height: 24),
           Text(
             '需处于内网或 Tailscale 网络内才能访问服务器。',

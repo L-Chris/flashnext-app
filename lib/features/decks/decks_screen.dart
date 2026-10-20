@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/providers.dart';
 import '../../models/deck.dart';
 import 'deck_settings_sheet.dart';
+import '../settings/settings_screen.dart';
 
 class DecksScreen extends ConsumerStatefulWidget {
   const DecksScreen({super.key});
@@ -46,7 +47,7 @@ class _DecksScreenState extends ConsumerState<DecksScreen> {
           ),
           IconButton(
             tooltip: '设置',
-            onPressed: () => context.push('/settings'),
+            onPressed: () => showSettings(context),
             icon: const Icon(Icons.settings),
           ),
         ],

@@ -106,6 +106,15 @@ class ApiClient {
     _unwrap(await _get('/decks/$deckId/settings')) as Map<String, dynamic>,
   );
 
+  Future<String> sharedTimezone() async =>
+      (_unwrap(await _get('/settings')) as Map<String, dynamic>)['timezone']
+          as String;
+
+  Future<String> saveSharedTimezone(String timezone) async =>
+      (_unwrap(await _dio.post('/settings', data: {'timezone': timezone}))
+              as Map<String, dynamic>)['timezone']
+          as String;
+
   Future<DeckSettings> saveDeckSettings(
     int deckId,
     Map<String, dynamic> changes,
