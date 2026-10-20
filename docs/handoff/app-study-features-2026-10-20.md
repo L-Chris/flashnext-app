@@ -6,7 +6,7 @@
 
 | 仓库 | 基线 | 用途 |
 | --- | --- | --- |
-| `L-Chris/flashnext` | `029c25ea7bd68fe893571f9bb317cb25181cb2b1` | 后端接口、数据库模型、Web 交互与回归测试已实现 |
+| `L-Chris/flashnext` | `ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5` | 后端接口、数据库模型、Web 交互与回归测试已实现 |
 | `L-Chris/flashnext-app` | 功能实现前基线 `63a5170`；从包含本文档的最新 main 开始 | Flutter 客户端，当前仍是原复习界面 |
 
 默认服务地址为 `https://mem.home.rethinkos.com`，需能访问内网或 Tailscale。App 仍允许用户修改服务器地址。后端代码基线不代表生产数据也在 Git：数据库、媒体、Kaikki 大文件、生成音频和 API Key 均未提交。
@@ -35,7 +35,7 @@ dart run build_runner build --delete-conflicting-outputs
 | 部分 | 应实现的行为 |
 | --- | --- |
 | 牌组列表 | 每张牌组卡片最右侧齿轮打开该牌组设置；齿轮点击不进入复习 |
-| 牌组设置 | 每日新卡/复习额度、时区、日切点，以及音频自动播放、新卡立即显示答案、延迟自动显示答案 |
+| 牌组设置 | 每日新卡/复习额度、日切点，以及音频自动播放、新卡立即显示答案、延迟自动显示答案 |
 | FSRS 设置 | 查看本牌组参数及来源、更新时间、日志数和训练门槛；从本牌组启动训练并查看状态 |
 | 高级 FSRS 操作 | 如提供手动参数或重建，使用下文的本牌组接口；重建必须先预览再由用户确认应用 |
 | 卡片正文 | 保留纯文本与英日词汇布局；为 `markdown_math` 展示服务端渲染的公式和 Markdown |
@@ -43,7 +43,7 @@ dart run build_runner build --delete-conflicting-outputs
 | 自动显示答案 | 使用每张卡片的 `presentation`，支持立即、倒计时和纯手动三种情况 |
 | 原有复习 | 保留评分、撤销、限额提示、完成队列后的撤销和连接设置 |
 
-全局设置页保留服务器地址、连接测试和应用更新；学习设置移到各牌组。牌组设置弹层没有右上角关闭按钮，使用 Android 返回或底部弹层/遮罩退出，保存是明确操作，不在关闭时隐式保存。有未保存内容时保留草稿或提示放弃。
+全局设置页保留服务器地址、连接测试和应用更新，并增加所有牌组共用的时区；其余学习设置在各牌组维护。牌组设置弹层没有右上角关闭按钮，使用 Android 返回或点击面板外空白遮罩退出，面板内点击不关闭；不显示“0 张额度有效”等额度解释或“训练在服务器”等过程提示。保存是明确操作，不在关闭时隐式保存。有未保存内容时保留草稿或提示放弃。
 
 **不增加**卡片创建/编辑器、文件选择/上传、音频生成按钮、词库导入或后台音频播放服务。卡片、公式、附件继续在 Web 维护；App 播放已有文件，不调用 Gemini、Forvo 或 Bifrost，也不需要它们的 Key。
 
@@ -61,7 +61,7 @@ dart run build_runner build --delete-conflicting-outputs
 | `lib/features/decks/decks_screen.dart` | `_DeckTile.trailing` 目前是数量/完成标记，调整为含最右侧设置齿轮的布局 |
 | `lib/features/review/review_screen.dart` | 当前只手动显示答案，无播放器、倒计时或公式；需要拆出卡片会话、卡面、音频组件 |
 | `lib/core/card_content.dart` | 当前仅解析英文 `/音标/` 和词性行；仅在纯文本词卡分支使用，不能拿它解析数学内容 |
-| `lib/features/settings/settings_screen.dart` | 保留连接设置与应用更新，别把牌组字段写进全局 SharedPreferences |
+| `lib/features/settings/settings_screen.dart` | 保留连接设置与应用更新，增加服务端统一时区；别把牌组字段写进全局 SharedPreferences |
 
 `ApiClient.cards()` 目前把 `/decks/:id/cards` 的分页对象当成数组；本次复习继续使用 `/due`。若后续使用卡片列表方法，应按 `data.cards` 解包，不能假定旧方法可用。
 
@@ -74,7 +74,8 @@ dart run build_runner build --delete-conflicting-outputs
 | 方法与路径 | 返回 data 或用途 |
 | --- | --- |
 | `GET /decks` | 牌组数组，含队列计数与今日用量 |
-| `GET /decks/:deckId/settings` | 该牌组设置对象 |
+| `GET/POST /settings` | 统一时区；GET 返回 `{timezone,version}`，POST 只接受 `{timezone}` |
+| `GET /decks/:deckId/settings` | 该牌组设置对象，timezone 是只读的统一时区 |
 | `POST /decks/:deckId/settings` | 保存提交的设置字段，返回完整设置 |
 | `GET /decks/:deckId/cards/due` | `{cards, reviewOptions, usage, counts}`，cards 已按后端调度与限额处理 |
 | `GET /cards/:id` | 单张完整卡片 |
@@ -83,7 +84,7 @@ dart run build_runner build --delete-conflicting-outputs
 | `POST /content/preview` | 按原始正文渲染两面，不修改卡片 |
 | `GET/HEAD /media/:id/content` | 音频字节流；不是 JSON，不经 `_unwrap` |
 
-`GET/POST /settings`、无 deckId 的 `/fsrs/*` 已返回 **400**，不能用作全局入口或自动回退。
+`/settings` 只用于统一时区，提交限额等其他字段返回 **400**。无 deckId 的 `/fsrs/*` 仍返回 **400**，不能用作全局训练入口。
 
 缺失字段的兼容默认值：`contentFormat=plain`、`media=[]`；缺失 `presentation` 时手动显示、自动播放关闭。未知格式保留原文，不擅自当 HTML。
 
@@ -95,18 +96,18 @@ dart run build_runner build --delete-conflicting-outputs
 | --- | --- |
 | `deckId` | 响应中的牌组 ID |
 | `newPerDay/reviewPerDay` | 整数 0–100000；0 是有效值 |
-| `timezone` | 有效 IANA 时区，例如 `Asia/Shanghai` |
+| `timezone` | 响应中的只读统一时区，例如 `Asia/Shanghai`；在全局设置通过 `/settings` 修改 |
 | `rolloverHour` | 整数 0–23，例如 4；不是字符串时间 |
 | `audioAutoplay` | 布尔值；默认 false，但 UI 必须读取实际牌组值 |
 | `showNewCardAnswerImmediately` | 布尔值；默认 false |
 | `autoRevealAnswerSeconds` | 整数 1–3600；**null 表示关闭**，默认 10 秒 |
 | `version` | 响应版本；保存成功后用于刷新状态和缓存 |
 
-POST 接受部分字段。建议只发用户实际修改的字段，避免覆盖其他端的新设置。保存成功使用响应完整对象替换本地状态，再刷新牌组计数及下次队列；失败保留草稿。接口没有客户端版本条件写协议，不要虚构 `If-Match` 或版本冲突接口。
+牌组 POST 接受部分字段，但不再接受独立时区（为兼容旧客户端，相同的 timezone 会忽略，不同值返回 400）。统一时区示例见 [fixtures/global-settings.json](fixtures/global-settings.json)。建议只发用户实际修改的牌组字段，避免覆盖其他端的新设置。保存成功使用响应完整对象替换本地状态，再刷新牌组计数及下次队列；失败保留草稿。接口没有客户端版本条件写协议，不要虚构 `If-Match` 或版本冲突接口。
 
 关闭自动显示应发送 `{"autoRevealAnswerSeconds":null}`。Dart 序列化不能把该 null 丢掉：省略字段会使后端保留原值。开关重新开启时可给 10 秒初始值，但不能在解析显式 null 时重设为 10。
 
-限额、日切点、时区、FSRS 调度由后端负责；App 不再按本机午夜重算、截断或重排队列。限额保存不会重建已有复习日程。
+修改统一时区后刷新所有牌组的队列和用量；日切点仍可独立。限额、日切点、时区、FSRS 调度由后端负责；App 不再按本机午夜重算、截断或重排队列。限额保存不会重建已有复习日程。
 
 ### 卡片展示字段
 
@@ -230,7 +231,7 @@ Content-Type: application/json
 ## 实施顺序与验收
 
 1. 扩展 Freezed 类型、API 客户端和测试样例，先保证旧字段/缺字段仍可解析。
-2. 接入每牌组设置与 FSRS 面板，确认 A/B 牌组与服务器地址切换的隔离。
+2. 接入每牌组设置与 FSRS 面板，确认 A/B 牌组与服务器地址切换的隔离，并验证统一时区在所有牌组生效。
 3. 建立复习会话控制器，先测试 0/null/10000、后台暂停、撤销和重复回调。
 4. 接入公式卡面与音频，再在 Android 真机测试音频焦点、WebView 字体、网络异常和资源释放。
 5. 回归现有英日词卡、评分与撤销、应用更新，构建 release APK；此次交接不发布新版本或推送 tag。
@@ -240,7 +241,7 @@ Content-Type: application/json
 | 必测项目 | 验收结果 |
 | --- | --- |
 | 序列化 | 保留 null 和 0；UUID 为字符串；旧卡缺少新字段正常展示 |
-| 设置隔离 | 修改 A 牌组不改变 B；重启后能取回服务端设置；服务器切换不串数据 |
+| 设置隔离 | 修改 A 的额度/展示/日切点不改变 B；统一时区影响所有牌组；重启恢复设置，切服务器不串数据 |
 | 关闭自动显示 | POST 确实带 null；重新 GET 仍为 null，未意外恢复 10 秒 |
 | 新卡立即显示 | 无正面闪动/音频；复习卡不因开关被误判为新卡 |
 | 延迟与后台 | 卡片 ready 后倒计时；后台暂停；提前翻面后没有迟到事件 |
@@ -269,19 +270,19 @@ flutter build apk --release
 
 以下链接固定在已核对的后端提交，避免另一台机器读到不一致接口：
 
-- [牌组设置及字段校验](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/server/app/modules/settings/application/settings.service.ts)
-- [卡片展示策略计算](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/server/app/modules/cards/application/card-presenter.ts)
-- [内容渲染与语法](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/server/app/modules/content/application/content.service.ts)
-- [媒体接口](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/server/app/controllers/media.controller.ts)
-- [Web 展示与撤销](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/web/src/components/ReviewView.tsx)
-- [Web 倒计时](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/web/src/hooks/useAnswerCountdown.ts)
-- [Web 音频生命周期](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/web/src/components/CardAudio.tsx)
-- [Web 公式请求与缓存](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/web/src/hooks/useContentPreview.ts)
-- [日语正文处理](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/web/src/utils/word-card.ts)
-- [Web 浏览器回归用例](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/web/tests/rich-cards.spec.ts)
-- [后端功能说明](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/docs/rich-cards-2026-10-20/README.md)
-- [每牌组设置与迁移说明](https://github.com/L-Chris/flashnext/blob/029c25ea7bd68fe893571f9bb317cb25181cb2b1/docs/deck-settings-2026-10-19/README.md)
+- [牌组设置及字段校验](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/server/app/modules/settings/application/settings.service.ts)
+- [卡片展示策略计算](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/server/app/modules/cards/application/card-presenter.ts)
+- [内容渲染与语法](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/server/app/modules/content/application/content.service.ts)
+- [媒体接口](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/server/app/controllers/media.controller.ts)
+- [Web 展示与撤销](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/web/src/components/ReviewView.tsx)
+- [Web 倒计时](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/web/src/hooks/useAnswerCountdown.ts)
+- [Web 音频生命周期](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/web/src/components/CardAudio.tsx)
+- [Web 公式请求与缓存](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/web/src/hooks/useContentPreview.ts)
+- [日语正文处理](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/web/src/utils/word-card.ts)
+- [Web 浏览器回归用例](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/web/tests/rich-cards.spec.ts)
+- [后端功能说明](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/docs/rich-cards-2026-10-20/README.md)
+- [每牌组设置与迁移说明](https://github.com/L-Chris/flashnext/blob/ecfe5bb6b9e07b53ccb75760f407aa4f06c9acb5/docs/deck-settings-2026-10-19/README.md)
 
 ## 交给下一位开发者的任务
 
-在 `flashnext-app` 按本文实现每牌组设置、公式/音频复习展示和自动显示答案；不做新增/编辑卡片、音频上传或词库导入。先核对已固定的后端接口，再改模型、API 和可测试的复习会话控制器，最后接入原生音频和公式卡面。保留原有服务器设置、应用更新、评分和撤销；不在手机端重算 FSRS。自动化写入用 mock 或独立测试服务，完成静态检查、单元/Widget 测试和 Android 真机验证后提交实现，不自动推送发布 tag。
+在 `flashnext-app` 按本文实现统一时区、每牌组设置、公式/音频复习展示和自动显示答案；不做新增/编辑卡片、音频上传或词库导入。先核对已固定的后端接口，再改模型、API 和可测试的复习会话控制器，最后接入原生音频和公式卡面。保留原有服务器设置、应用更新、评分和撤销；不在手机端重算 FSRS。自动化写入用 mock 或独立测试服务，完成静态检查、单元/Widget 测试和 Android 真机验证后提交实现，不自动推送发布 tag。
