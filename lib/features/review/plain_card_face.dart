@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart' hide Card;
 
 import '../../core/card_content.dart';
+import '../../core/word_pronunciations.dart';
 import '../../models/due_queue.dart';
+import 'pronunciations.dart';
 
 String normalizeDictionaryNewlines(String text) =>
     text.replaceAll(RegExp(r'\\+r\\+n|\\+[nr]|\r\n?'), '\n');
@@ -38,16 +40,13 @@ class PlainCardFace extends StatelessWidget {
     final isWord = generatedWordBack(card);
     final japanese = word?.language == 'ja';
     final content = CardContent.parse(normalizeDictionaryNewlines(card.back));
-    final pronunciations =
-        word?.pronunciations
-            .where((p) => p.status == 'accepted' && p.displayIpa.isNotEmpty)
-            .map(
-              (p) =>
-                  '${p.accent == 'us' ? '美' : '英'} /${p.displayIpa.replaceAll('/', '')}/ ${p.pos}',
-            )
-            .toSet()
-            .toList() ??
-        <String>[];
+    final hideDuplicateMeanings =
+        isWord &&
+        !japanese &&
+        pronunciationNotesCoverMeanings(
+          normalizeDictionaryNewlines(word!.translation),
+          word.pronunciations,
+        );
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -78,29 +77,20 @@ class PlainCardFace extends StatelessWidget {
               const SizedBox(height: 8),
               Text(word.translation, style: theme.bodyLarge),
             ] else ...[
-              if (pronunciations.isNotEmpty) ...[
-                Text(pronunciations.first, style: theme.titleMedium),
-                if (pronunciations.length > 1)
-                  ExpansionTile(
-                    title: const Text('其他读音与用法'),
-                    children: [
-                      for (final value in pronunciations.skip(1)) Text(value),
-                    ],
-                  ),
-              ] else if (content.phonetic != null || word!.phonetic.isNotEmpty)
-                Text(
-                  content.phonetic ?? word!.phonetic,
-                  style: theme.titleMedium,
-                ),
+              Pronunciations(
+                items: word!.pronunciations,
+                fallback: content.phonetic ?? word.phonetic,
+              ),
               const SizedBox(height: 16),
-              for (final meaning in content.meanings)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    '${meaning.pos == null ? '' : '${meaning.pos} '}${meaning.text}',
-                    style: theme.bodyLarge,
+              if (!hideDuplicateMeanings)
+                for (final meaning in content.meanings)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      '${meaning.pos == null ? '' : '${meaning.pos} '}${meaning.text}',
+                      style: theme.bodyLarge,
+                    ),
                   ),
-                ),
             ],
             if (isWord && word != null)
               for (final sense in word.senses)
