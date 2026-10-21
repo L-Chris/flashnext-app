@@ -4,6 +4,8 @@
 
 <img src="assets/branding/logo.png" width="96" alt="FlashNext logo" />
 
+最新版本：[v0.2.0](https://github.com/L-Chris/flashnext-app/releases/tag/v0.2.0)，更新内容见 [发布说明](docs/releases/v0.2.0.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包。
+
 FlashNext 的 Android 在线复习客户端，使用 Flutter、Riverpod、Dio 和 go_router。
 包含牌组列表、卡片复习与撤销、每日限额提示、服务器设置和连接测试。
 
@@ -56,16 +58,16 @@ Android SDK 路径在本机的 `android/local.properties` 中配置。
 
 推送 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
 工作流使用 Flutter 3.47.0 / Java 17，执行依赖校验、静态检查、测试和 release APK 构建。
-版本名和构建号取自 `pubspec.yaml`（如 `0.1.0+3`）；每次发布都应提高版本名和构建号。
+版本名和构建号取自 `pubspec.yaml`（当前为 `0.2.0+7`）；每次发布都应提高版本名和构建号。
 tag 必须为与版本名匹配的 `vX.Y.Z`，不匹配时构建会失败，避免 App 更新判断与 APK 实际版本不一致。
 
 ```sh
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.2.0
+git push origin v0.2.0
 ```
 
 tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-android-arm64-v8a.apk`、`FlashNext-X.Y.Z-android-armeabi-v7a.apk`、`FlashNext-X.Y.Z-android-x86_64.apk` 和 `SHA256SUMS.txt`。
-同时保留通用 APK `FlashNext-X.Y.Z-android.apk`，确保现有 0.1.0 客户端的升级检查仍可用；普通手机下载 arm64-v8a 包即可。
+从 0.2.0 起仅发布三个架构的 APK，不再构建或发布通用包；普通手机下载 arm64-v8a 包即可。0.1.0 客户端的更新检查依赖通用包，升级到 0.2.0 时请从 Release 页面手动下载对应架构的安装包。
 发布说明优先读取 `docs/releases/<tag>.md`，没有该文件则使用自动生成的说明。已有 Release 不会被覆盖。
 也可在 Actions → Build Android → 对应运行 → Artifacts 下载 `flashnext-android-<运行编号>`，保存 90 天。
 手动运行只构建和上传 Artifact，不创建 Release。目前只支持 Android。

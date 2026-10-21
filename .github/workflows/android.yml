@@ -86,14 +86,7 @@ jobs:
             "keyPassword=$ANDROID_KEY_PASSWORD" "storePassword=$ANDROID_STORE_PASSWORD" > android/key.properties
 
       - name: Build APK
-        env:
-          VERSION: ${{ steps.version.outputs.name }}
-        run: |
-          # Existing 0.1.0 clients require the legacy asset before showing an update.
-          flutter build apk --release
-          mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-release.apk "dist/FlashNext-$VERSION-android.apk"
-          flutter build apk --release --split-per-abi
+        run: flutter build apk --release --split-per-abi
 
       - name: Remove signing files
         if: always()
