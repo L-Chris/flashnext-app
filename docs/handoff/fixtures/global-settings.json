@@ -1,0 +1,11 @@
+{
+  "request": {
+    "timezone": "Asia/Shanghai"
+  },
+  "response": {
+    "data": {
+      "timezone": "Asia/Shanghai",
+      "version": 1
+    }
+  }
+}
