@@ -4,7 +4,7 @@
 
 <img src="assets/branding/logo.png" width="96" alt="FlashNext logo" />
 
-最新版本：[v0.2.0](https://github.com/L-Chris/flashnext-app/releases/tag/v0.2.0)，更新内容见 [发布说明](docs/releases/v0.2.0.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包。
+最新版本：[v0.3.0](https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.0)，更新内容见 [发布说明](docs/releases/v0.3.0.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包，原生版约 2.24 MB。
 
 FlashNext 的 Android 在线复习客户端，使用 Kotlin、Jetpack Compose、系统 WebView 和 Media3。
 包含牌组列表、卡片复习与撤销、牌组学习设置、服务器设置和连接测试。
@@ -39,7 +39,7 @@ native-android/gradlew -p native-android assembleRelease
 ```
 
 APK 输出目录：`build/native/app/outputs/apk/release/`。普通手机选择 `app-arm64-v8a-release.apk`；32 位旧机和 x86_64 设备选择对应包。不生成通用包。
-三个架构使用相同 versionCode，覆盖升级需提高构建号。版本统一读取根目录 `pubspec.yaml`，当前为 `0.2.0+9`；也可用 `-PbuildNumber=数字` 覆盖本地验证构建号。
+三个架构使用相同 versionCode，覆盖升级需提高构建号。版本统一读取根目录 `pubspec.yaml`，当前为 `0.3.0+10`；也可用 `-PbuildNumber=数字` 覆盖本地验证构建号。
 Android SDK 路径在本机 `native-android/local.properties` 中配置，例如 `sdk.dir=F\:/android-sdk`。
 详细实现、验证命令与迁移说明见 [原生 Android 迁移](docs/implementation/native-android-2026-10-22.md)。
 
@@ -59,13 +59,13 @@ Android SDK 路径在本机 `native-android/local.properties` 中配置，例如
 
 推送 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
 工作流使用 Java 17 和 Gradle，执行原生单元测试、Android Lint 和 release 构建。启用 R8 代码优化及资源裁剪；对应 `mapping.txt` 另存为 `flashnext-symbols-<版本>-<运行编号>` Artifact，保存 90 天，排查历史崩溃需使用匹配构建的文件。
-版本名和构建号取自 `pubspec.yaml`（当前为 `0.2.0+9`）；每次发布都应提高版本名和构建号。
+版本名和构建号取自 `pubspec.yaml`（当前为 `0.3.0+10`）；每次发布都应提高版本名和构建号。
 tag 必须为与版本名匹配的 `vX.Y.Z`，不匹配时构建会失败，避免 App 更新判断与 APK 实际版本不一致。
 
 ```sh
-# 先修改 pubspec.yaml 中的版本，例如 0.2.1+10
-git tag v0.2.1
-git push origin v0.2.1
+# 先修改 pubspec.yaml 中的版本，例如 0.3.1+11
+git tag v0.3.1
+git push origin v0.3.1
 ```
 
 tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-android-arm64-v8a.apk`、`FlashNext-X.Y.Z-android-armeabi-v7a.apk`、`FlashNext-X.Y.Z-android-x86_64.apk` 和 `SHA256SUMS.txt`。
@@ -74,7 +74,7 @@ tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-a
 也可在 Actions → Build Android → 对应运行 → Artifacts 下载 `flashnext-android-<运行编号>`，保存 90 天。
 手动运行只构建和上传 Artifact，不创建 Release。目前只支持 Android。
 
-原生 APK 不再携带 Flutter 引擎或 Dart AOT 代码。原 Flutter 包的体积分解见 [APK 体积分析](docs/implementation/apk-size-2026-10-22.md)，原生构建对比见 [迁移记录](docs/implementation/native-android-2026-10-22.md)。已发布的 v0.2.0 附件仍为 Flutter 版；原生改动在下次新版本发布时生效，不覆盖已有 Release。
+从 v0.3.0 起发布原生 APK，不再携带 Flutter 引擎或 Dart AOT 代码。原 Flutter 包的体积分解见 [APK 体积分析](docs/implementation/apk-size-2026-10-22.md)，原生构建对比见 [迁移记录](docs/implementation/native-android-2026-10-22.md)。v0.2.0 附件仍为 Flutter 版，不覆盖已有 Release。
 
 ## 应用内更新
 
