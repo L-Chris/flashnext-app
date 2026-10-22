@@ -15,6 +15,14 @@ import org.junit.Assert.*
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import android.graphics.Bitmap
+import java.io.File
 
 /** All mutations target a loopback test server. No real study records are modified. */
 class NativeAppTest {
@@ -59,41 +67,44 @@ class NativeAppTest {
         server.shutdown()
     }
     private fun waitText(text: String) {
-        try { rule.waitUntil(20_000) { rule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() } }
-        catch(e: Exception) { throw AssertionError("Missing '$text'; home=${model.home.value}; requests=$requests; tree=${rule.onRoot().printToString()}",e) }
+        try { rule.waitUntil(20_000) { runCatching { rule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }.getOrDefault(false) } }
+        catch(e: Exception) { throw AssertionError("Missing '$text'; home=${model.home.value}; requests=$requests; tree=${runCatching { rule.onAllNodes(isRoot()).printToString() }.getOrDefault("unavailable")}",e) }
     }
     @Test fun reviewCompletesAndUndoRestoresWithMigratedServerAddress() {
         assertEquals(server.url("/").toString().trimEnd('/'),model.api.baseUrl)
-        rule.setContent { MaterialTheme { FlashNext(model,false) } }
+        rule.setContent { FlashNextTheme(false) { FlashNext(model,false) } }
+        waitText("Native test"); capture("home-light")
         waitText("Native test"); rule.onNodeWithTag("deck-1").performClick()
         waitText("native question"); rule.onNodeWithTag("reveal").performClick(); waitText("native answer")
+        capture("review-light")
         rule.waitUntil { rule.onNodeWithTag("rating-3").isEnabled() }; rule.onNodeWithTag("rating-3").performClick()
-        waitText("本次学习完成"); rule.onNodeWithText("撤销").performClick(); waitText("native question")
+        waitText("太棒了！当前没有需要复习的卡片"); rule.onNodeWithContentDescription("撤销上一次").performClick(); waitText("native question")
         assertEquals(1,requests.count { it=="POST /api/cards/1/review" }); assertEquals(1,requests.count { it=="POST /api/cards/1/undo" })
         rule.onAllNodesWithText("新卡剩余",substring=true).assertCountEquals(0)
     }
     @Test fun settingsPanelKeepsInsideTapsClosesOutsideAndProtectsDraft() {
-        rule.setContent { MaterialTheme { FlashNext(model,false) } }
+        rule.setContent { FlashNextTheme(false) { FlashNext(model,false) } }
         waitText("Native test")
-        rule.onNodeWithText("牌组设置").performClick()
-        waitText("每日新卡")
-        rule.onNodeWithText("每日新卡").performClick(); rule.onNodeWithText("每日新卡").assertExists()
+        rule.onNodeWithTag("deck-settings-1").performClick()
+        waitText("每日新卡额度"); capture("deck-settings-light")
+        rule.onNodeWithText("每日新卡额度").performClick(); rule.onNodeWithText("每日新卡额度").assertExists()
         // Hide the keyboard before testing outside dismissal.
         androidx.test.espresso.Espresso.closeSoftKeyboard()
-        outsideTap(); rule.waitUntil { rule.onAllNodesWithText("每日新卡").fetchSemanticsNodes().isEmpty() }
-        rule.onNodeWithText("牌组设置").performClick(); waitText("每日新卡")
-        rule.onNodeWithText("每日新卡").performTextReplacement("25"); androidx.test.espresso.Espresso.closeSoftKeyboard()
+        outsideTap(); rule.waitUntil { rule.onAllNodesWithText("每日新卡额度").fetchSemanticsNodes().isEmpty() }
+        rule.onNodeWithTag("deck-settings-1").performClick(); waitText("每日新卡额度")
+        rule.onNodeWithText("每日新卡额度").performTextReplacement("25"); androidx.test.espresso.Espresso.closeSoftKeyboard()
         outsideTap(); waitText("放弃未保存的修改？"); rule.onNodeWithText("继续编辑").performClick(); rule.onNodeWithText("25").assertExists()
+        rule.onNodeWithText("每日新卡额度").assertIsDisplayed()
         assertEquals(0,requests.count { it=="POST /api/decks/1/settings" })
     }
     @Test fun loadingSettingsCanBeDismissedWithoutWaitingForNetwork() {
         settingsGate=CountDownLatch(1)
-        rule.setContent { MaterialTheme { FlashNext(model,false) } }
-        waitText("Native test"); rule.onNodeWithText("牌组设置").performClick(); waitText("关闭")
+        rule.setContent { FlashNextTheme(false) { FlashNext(model,false) } }
+        waitText("Native test"); rule.onNodeWithTag("deck-settings-1").performClick(); waitText("返回")
         rule.waitUntil { requests.contains("GET /api/decks/1/settings") }
         try {
             outsideTap()
-            rule.waitUntil(5000) { rule.onAllNodesWithText("关闭").fetchSemanticsNodes().isEmpty() }
+            rule.waitUntil(5000) { rule.onAllNodesWithText("返回").fetchSemanticsNodes().isEmpty() }
         } finally { settingsGate?.countDown() }
         assertEquals(0,requests.count { it=="POST /api/decks/1/settings" })
     }
@@ -108,7 +119,7 @@ class NativeAppTest {
             rule.onNodeWithText("服务器地址").performTextReplacement(address)
             rule.onNodeWithText("时区").performTextReplacement("UTC")
             androidx.test.espresso.Espresso.closeSoftKeyboard()
-            rule.onNodeWithText("保存").performScrollTo().performClick()
+            rule.onNodeWithText("保存").performClick()
             rule.waitUntil(10_000) { model.api.baseUrl==address }
             val request=destination.takeRequest(5,TimeUnit.SECONDS)!!
             assertEquals("POST",request.method); assertEquals("/api/settings",request.path)
@@ -124,7 +135,7 @@ class NativeAppTest {
             rule.onNodeWithText("服务器地址").performTextReplacement(address)
             rule.onNodeWithText("时区").performTextReplacement("UTC")
             androidx.test.espresso.Espresso.closeSoftKeyboard()
-            rule.onNodeWithText("保存").performScrollTo().performClick()
+            rule.onNodeWithText("保存").performClick()
             rule.waitUntil(10_000) { rule.onAllNodesWithText("保存").fetchSemanticsNodes().isNotEmpty() && runCatching { rule.onNodeWithText("保存").assertIsEnabled(); true }.getOrDefault(false) }
             assertNotNull(destination.takeRequest(5,TimeUnit.SECONDS))
             assertEquals(original,model.api.baseUrl)
@@ -139,7 +150,7 @@ class NativeAppTest {
             val address=destination.url("/").toString().trimEnd('/')
             rule.onNodeWithText("服务器地址").performTextReplacement(address)
             androidx.test.espresso.Espresso.closeSoftKeyboard()
-            rule.onNodeWithText("保存").performScrollTo().performClick()
+            rule.onNodeWithText("保存").performClick()
             rule.waitUntil(10_000) { model.api.baseUrl==address }
             val request=destination.takeRequest(5,TimeUnit.SECONDS)!!
             assertEquals("GET",request.method); assertEquals("/api/decks",request.path)
@@ -147,17 +158,47 @@ class NativeAppTest {
         }
     }
     private fun openAppSettings() {
-        rule.setContent { MaterialTheme { FlashNext(model,false) } }
-        waitText("Native test"); rule.onNodeWithText("设置").performClick()
+        rule.setContent { FlashNextTheme(false) { FlashNext(model,false) } }
+        waitText("Native test"); rule.onNodeWithContentDescription("设置").performClick()
         waitText("Asia/Shanghai")
         rule.onNodeWithText("时区").assertIsEnabled()
+        capture("app-settings-light")
+    }
+    @Test fun reviewActionsFitSmallScreenWithLargeTextAndKeepUndoInToolbar() {
+        rule.setContent {
+            val density=LocalDensity.current.density
+            CompositionLocalProvider(LocalDensity provides Density(density,2f)) {
+                FlashNextTheme(true) { Box(Modifier.requiredWidth(320.dp).fillMaxHeight()) { FlashNext(model,true) } }
+            }
+        }
+        waitText("Native test")
+        rule.onNodeWithContentDescription("设置").assertIsDisplayed()
+        rule.onNodeWithTag("deck-1").performClick(); waitText("native question")
+        rule.onNodeWithContentDescription("返回").assertIsDisplayed()
+        rule.onNodeWithContentDescription("撤销上一次").assertIsNotEnabled()
+        rule.onNodeWithTag("reveal").performClick(); waitText("native answer")
+        rule.waitUntil { rule.onNodeWithTag("rating-4").isEnabled() }
+        (1..4).forEach { rule.onNodeWithTag("rating-$it").assertIsDisplayed().assertIsEnabled() }
+        val cardBounds=rule.onNodeWithTag("review-card").fetchSemanticsNode().boundsInRoot
+        val actionsBounds=rule.onNodeWithTag("rating-buttons").fetchSemanticsNode().boundsInRoot
+        assertTrue("The card must keep usable space above the actions",cardBounds.height>200)
+        assertTrue("Rating actions must stay below card content",actionsBounds.top>=cardBounds.bottom)
+        capture("review-dark-large-text")
+        rule.onNodeWithContentDescription("返回").performClick(); waitText("Native test")
+    }
+    private fun capture(name: String) {
+        if(InstrumentationRegistry.getArguments().getString("captureUi")!="true") return
+        val directory=File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null),"ui-qa").apply { mkdirs() }
+        rule.waitForIdle()
+        File(directory,"$name.png").outputStream().use { InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot().compress(Bitmap.CompressFormat.PNG,100,it) }
     }
     private fun outsideTap() {
         val ui=InstrumentationRegistry.getInstrumentation().uiAutomation
-        val y=InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.heightPixels/2f
+        val bounds=rule.onNodeWithTag("settings-panel").fetchSemanticsNode().boundsInWindow
+        val y=bounds.top/2f
         val time=SystemClock.uptimeMillis()
         listOf(MotionEvent.ACTION_DOWN,MotionEvent.ACTION_UP).forEach { action ->
-            val event=MotionEvent.obtain(time,SystemClock.uptimeMillis(),action,1f,y,0); ui.injectInputEvent(event,true); event.recycle()
+            val event=MotionEvent.obtain(time,SystemClock.uptimeMillis(),action,bounds.center.x,y,0); ui.injectInputEvent(event,true); event.recycle()
         }
     }
 }

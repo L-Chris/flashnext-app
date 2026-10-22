@@ -6,7 +6,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class AudioState(val playing: Boolean = false, val error: String? = null)
+data class AudioState(val playing: Boolean = false, val error: String? = null, val loading: Boolean = false)
 class AudioController(private val context: Context) {
     private var player: ExoPlayer? = null
     private val mutable = MutableStateFlow(AudioState())
@@ -34,9 +34,13 @@ class AudioController(private val context: Context) {
                     if (player === p) { stop(); mutable.value = AudioState(error = "音频播放失败，可点击重新播放") }
                 }
                 override fun onPlaybackStateChanged(playbackState: Int) {
-                    if (player === p && playbackState == Player.STATE_ENDED) stop()
+                    if (player === p) {
+                        if(playbackState == Player.STATE_ENDED) stop()
+                        else mutable.value=mutable.value.copy(loading=playbackState==Player.STATE_BUFFERING)
+                    }
                 }
             })
+            mutable.value=AudioState(loading=true)
             p.setMediaItems(urls.map { MediaItem.fromUri(it) }); p.prepare(); p.play()
         } catch (_: Exception) { stop(); mutable.value = AudioState(error = "无法加载音频") }
     }

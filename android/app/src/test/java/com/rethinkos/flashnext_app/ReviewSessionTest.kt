@@ -35,9 +35,11 @@ class ReviewSessionTest {
         val api=FakeApi().apply { cards=listOf(StudyCard(1,presentation=Presentation(revealMs=1000))) }
         val s=ReviewSession(api,1,backgroundScope,clock={testScheduler.currentTime})
         s.load(); runCurrent(); advanceTimeBy(2000); assertFalse(s.state.value.revealed)
-        ready(s); advanceTimeBy(400); s.foreground(false); advanceTimeBy(5000); assertEquals(400,s.durationMs)
+        ready(s); assertEquals(1,s.state.value.countdownSeconds)
+        advanceTimeBy(400); s.foreground(false); assertNull(s.state.value.countdownSeconds)
+        advanceTimeBy(5000); assertEquals(400,s.durationMs)
         s.foreground(true); advanceTimeBy(550); assertFalse(s.state.value.revealed)
-        advanceTimeBy(100); runCurrent(); assertTrue(s.state.value.revealed); assertFalse(s.state.value.ready)
+        advanceTimeBy(100); runCurrent(); assertTrue(s.state.value.revealed); assertFalse(s.state.value.ready); assertNull(s.state.value.countdownSeconds)
         ready(s); assertTrue(s.state.value.canRate); s.close()
     }
     @Test fun `zero immediate back never autoplays front and old callbacks cannot mark a new visit ready`() = runTest {

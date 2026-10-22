@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 data class ReviewState(val card: StudyCard? = null, val busy: Boolean = false, val revealed: Boolean = false,
     val ready: Boolean = false, val foreground: Boolean = true, val loaded: Boolean = false,
-    val visit: Int = 0, val canUndo: Boolean = false, val error: String? = null, val notice: String? = null) {
+    val visit: Int = 0, val canUndo: Boolean = false, val error: String? = null, val notice: String? = null,
+    val countdownSeconds: Int? = null) {
     val canRate get() = card != null && revealed && ready && !busy && foreground
 }
 /** A server snapshot is consumed locally; FSRS and learning deadlines remain server-authoritative. */
@@ -40,6 +41,7 @@ class ReviewSession(val api: StudyApi, val deck: Int, parent: CoroutineScope,
         durationSince?.let { studied += clock() - it }; durationSince = null
         countdownSince?.let { start -> remaining = remaining?.let { (it - (clock() - start)).coerceAtLeast(0) } }
         countdownSince = null; ticker?.cancel(); ticker = null
+        update { it.copy(countdownSeconds=null) }
     }
     private fun resume() {
         val s = state.value
@@ -47,11 +49,14 @@ class ReviewSession(val api: StudyApi, val deck: Int, parent: CoroutineScope,
         if (durationSince == null) durationSince = clock()
         if (s.revealed || !automaticAllowed || remaining == null) return
         countdownSince = clock()
+        update { it.copy(countdownSeconds=((remaining!!+999)/1000).toInt()) }
         ticker?.cancel()
         ticker = scope.launch {
             while (isActive) {
                 delay(50)
-                if ((remaining ?: Long.MAX_VALUE) <= clock() - (countdownSince ?: clock())) { reveal(); break }
+                val left=(remaining ?: Long.MAX_VALUE) - (clock() - (countdownSince ?: clock()))
+                if (left<=0) { reveal(); break }
+                update { it.copy(countdownSeconds=((left+999)/1000).toInt()) }
             }
         }
     }

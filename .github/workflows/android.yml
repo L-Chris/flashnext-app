@@ -120,8 +120,11 @@ jobs:
             exit 1
           fi
           notes="docs/releases/$GITHUB_REF_NAME.md"
-          if [[ -f "$notes" ]]; then
-            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "$GITHUB_REF_NAME" --notes-file "$notes"
-          else
-            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "$GITHUB_REF_NAME" --generate-notes
-          fi
+          test -f "$notes"
+          iconv -f UTF-8 -t UTF-8 "$notes" >/dev/null
+          grep -Fxq '<summary>中文更新说明</summary>' "$notes"
+          gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "$GITHUB_REF_NAME" --notes-file "$notes"
+          title=$(gh release view "$GITHUB_REF_NAME" --json name --jq '.name')
+          test "$title" = "$GITHUB_REF_NAME"
+          gh release view "$GITHUB_REF_NAME" --json body --jq '.body' > published-notes.md
+          diff -u <(sed -e 's/\r$//' -e '${/^$/d;}' "$notes") <(sed -e 's/\r$//' -e '${/^$/d;}' published-notes.md)

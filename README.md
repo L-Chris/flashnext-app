@@ -4,7 +4,7 @@
 
 <img src="assets/branding/logo.png" width="96" alt="FlashNext logo" />
 
-最新版本：[v0.3.1](https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.1)，更新内容见 [发布说明](docs/releases/v0.3.1.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包，原生版约 2.26 MB。
+最新版本：[v0.3.2](https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.2)，更新内容见 [发布说明](docs/releases/v0.3.2.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包，原生版约 2.35 MB。
 
 FlashNext 的 Android 在线复习客户端，使用 Kotlin、Jetpack Compose、系统 WebView 和 Media3。
 包含牌组列表、卡片复习与撤销、牌组学习设置、服务器设置和连接测试。
@@ -39,7 +39,7 @@ android/gradlew -p android assembleRelease
 ```
 
 APK 输出目录：`build/native/app/outputs/apk/release/`。普通手机选择 `app-arm64-v8a-release.apk`；32 位旧机和 x86_64 设备选择对应包。不生成通用包。
-三个架构使用相同 versionCode，覆盖升级需提高构建号。版本统一读取 `android/version.properties`，当前为 `0.3.1+11`；也可用 `-PbuildNumber=数字` 覆盖本地验证构建号。
+三个架构使用相同 versionCode，覆盖升级需提高构建号。版本统一读取 `android/version.properties`，当前为 `0.3.2+12`；也可用 `-PbuildNumber=数字` 覆盖本地验证构建号。
 Android SDK 路径在本机 `android/local.properties` 中配置，例如 `sdk.dir=F\:/android-sdk`。
 详细实现、验证命令与迁移说明见 [原生 Android 迁移](docs/implementation/native-android-2026-10-22.md)。
 
@@ -59,18 +59,18 @@ Android SDK 路径在本机 `android/local.properties` 中配置，例如 `sdk.d
 
 推送 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
 工作流使用 Java 17 和 Gradle，执行原生单元测试、Android Lint 和 release 构建。启用 R8 代码优化及资源裁剪；对应 `mapping.txt` 另存为 `flashnext-symbols-<版本>-<运行编号>` Artifact，保存 90 天，排查历史崩溃需使用匹配构建的文件。
-版本名和构建号取自 `android/version.properties`（当前为 `0.3.1+11`）；每次发布都应提高版本名和构建号。
+版本名和构建号取自 `android/version.properties`（当前为 `0.3.2+12`）；每次发布都应提高版本名和构建号。发布规则见 [AGENTS.md](AGENTS.md#github-release-notes)，完整步骤见 [发布流程](docs/RELEASING.md)。
 tag 必须为与版本名匹配的 `vX.Y.Z`，不匹配时构建会失败，避免 App 更新判断与 APK 实际版本不一致。
 
 ```sh
 # 先修改 android/version.properties 的 versionName 和 versionCode
-git tag v0.3.1
-git push origin v0.3.1
+git tag -a v0.3.2 -m "FlashNext v0.3.2"
+git push --atomic origin main refs/tags/v0.3.2
 ```
 
 tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-android-arm64-v8a.apk`、`FlashNext-X.Y.Z-android-armeabi-v7a.apk`、`FlashNext-X.Y.Z-android-x86_64.apk` 和 `SHA256SUMS.txt`。
 从 0.2.0 起仅发布三个架构的 APK，不再构建或发布通用包；普通手机下载 arm64-v8a 包即可。0.1.0 客户端的更新检查依赖通用包，升级到 0.2.0 时请从 Release 页面手动下载对应架构的安装包。
-发布说明优先读取 `docs/releases/<tag>.md`，没有该文件则使用自动生成的说明。已有 Release 不会被覆盖。
+发布说明必须来自 `docs/releases/<tag>.md`，先英文、再附中文折叠块，Release 标题必须与 tag 完全一致。已有 Release 不会被覆盖。
 也可在 Actions → Build Android → 对应运行 → Artifacts 下载 `flashnext-android-<运行编号>`，保存 90 天。
 手动运行只构建和上传 Artifact，不创建 Release。目前只支持 Android。
 

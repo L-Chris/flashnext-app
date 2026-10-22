@@ -19,11 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
+import androidx.annotation.DrawableRes
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.json.JSONArray
 
@@ -33,13 +34,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState); enableEdgeToEdge()
         setContent {
             val dark = isSystemInDarkTheme()
-            MaterialTheme(colorScheme = if(dark) darkColorScheme() else lightColorScheme()) {
+            FlashNextTheme(dark) {
                 Surface(Modifier.fillMaxSize()) { FlashNext(model, dark) }
             }
         }
     }
     override fun onStart() { super.onStart(); model.session?.foreground(true); if(model.session==null) model.updater.check(automatic=true) }
     override fun onStop() { model.session?.foreground(false); model.audio.stop(); super.onStop() }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable fun AppIconButton(@DrawableRes icon: Int, label: String, onClick: () -> Unit, enabled: Boolean=true, modifier: Modifier=Modifier) {
+    TooltipBox(positionProvider=TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip={ PlainTooltip { Text(label) } }, state=rememberTooltipState()) {
+        IconButton(onClick=onClick, enabled=enabled, modifier=modifier) { Icon(painterResource(icon),contentDescription=label) }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,8 +64,17 @@ class MainActivity : ComponentActivity() {
             if(session == null) Image(painterResource(R.drawable.brand_logo),contentDescription=null,modifier=Modifier.size(32.dp))
             Text(if(session != null) model.deck?.name ?: "复习" else "FlashNext")
         } },
-            navigationIcon = { if (session != null) TextButton(onClick = { leave() }) { Text("返回") } },
-            actions = { if (session == null) { TextButton(onClick = model::refresh, enabled = !home.loading) { Text("刷新") }; TextButton(onClick = { settings = true }) { Text("设置") } } })
+            navigationIcon = { if (session != null) AppIconButton(R.drawable.ic_arrow_back,"返回",::leave) },
+            actions = {
+                val active=session
+                if(active==null) {
+                    AppIconButton(R.drawable.ic_refresh,"刷新",model::refresh,enabled=!home.loading)
+                    AppIconButton(R.drawable.ic_settings,"设置",{ settings=true })
+                } else {
+                    val review by active.state.collectAsStateWithLifecycle()
+                    AppIconButton(R.drawable.ic_undo,"撤销上一次",active::undo,enabled=review.canUndo && !review.busy,modifier=Modifier.testTag("undo"))
+                }
+            })
     }) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             val active = session
@@ -64,21 +82,25 @@ class MainActivity : ComponentActivity() {
             else when {
                 home.loading && home.decks.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 home.error != null && home.decks.isEmpty() -> Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(home.error!!); Button(onClick = model::refresh) { Text("重试") }; TextButton(onClick = { settings = true }) { Text("服务器设置") }
+                    Icon(painterResource(R.drawable.ic_cloud_off),null,Modifier.size(48.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(12.dp)); Text(home.error!!,textAlign=TextAlign.Center)
+                    Spacer(Modifier.height(12.dp)); Button(onClick = model::refresh) { Text("重试") }; TextButton(onClick = { settings = true }) { Text("服务器设置") }
                 }
                 else -> PullToRefreshBox(isRefreshing=home.loading, onRefresh=model::refresh) {
-                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     home.error?.let { item { Text(it, color = MaterialTheme.colorScheme.error) } }
-                    if (home.decks.isEmpty()) item { Text("暂无牌组") }
+                    if (home.decks.isEmpty()) item { Box(Modifier.fillParentMaxSize(),contentAlignment=Alignment.Center) { Text("还没有牌组") } }
                     items(home.decks, key = { it.id }) { deck ->
-                        OutlinedCard(onClick = { session = model.enterReview(deck) }, modifier = Modifier.fillMaxWidth().testTag("deck-${deck.id}")) {
-                            Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Card(onClick = { session = model.enterReview(deck) }, modifier = Modifier.fillMaxWidth().testTag("deck-${deck.id}"),shape=RoundedCornerShape(12.dp),
+                            colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.surfaceContainerLow),elevation=CardDefaults.cardElevation(defaultElevation=1.dp)) {
+                            Row(Modifier.fillMaxWidth().padding(start=16.dp,end=8.dp,top=8.dp,bottom=8.dp).heightIn(min=56.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f)) {
-                                    Text(deck.name, style = MaterialTheme.typography.titleLarge)
-                                    if (deck.description.isNotBlank()) Text(deck.description, style = MaterialTheme.typography.bodyMedium)
-                                    Text("待复习 ${deck.dueCount} · 日内 ${deck.intraday} · 新卡 ${deck.fresh}", color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
+                                    Text(deck.name, style = MaterialTheme.typography.titleMedium)
+                                    Text("待复习 ${deck.dueCount} · 日内 ${deck.intraday} · 新卡 ${deck.fresh}", color = MaterialTheme.colorScheme.onSurfaceVariant,style=MaterialTheme.typography.bodyMedium)
                                 }
-                                TextButton(onClick = { deckSettings = deck }) { Text("牌组设置") }
+                                if(deck.dueCount>0) SuggestionChip(onClick={ session=model.enterReview(deck) },label={Text("${deck.dueCount}")},modifier=Modifier.padding(start=8.dp))
+                                else Icon(painterResource(R.drawable.ic_check_circle_outline),"已完成",Modifier.padding(start=8.dp))
+                                AppIconButton(R.drawable.ic_settings_outline,"${deck.name}的学习设置",{ deckSettings=deck },modifier=Modifier.testTag("deck-settings-${deck.id}"))
                             }
                         }
                     }
@@ -95,18 +117,17 @@ class MainActivity : ComponentActivity() {
 @Composable fun ReviewScreen(session: ReviewSession, api: HttpStudyApi, audio: AudioController, dark: Boolean) {
     val s by session.state.collectAsStateWithLifecycle()
     val a by audio.state.collectAsStateWithLifecycle()
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { TextButton(onClick = session::undo, enabled = s.canUndo && !s.busy) { Text("撤销") } }
+    Column(Modifier.fillMaxSize().padding(16.dp)) {
         s.notice?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         val card = s.card
         if (card != null) {
-            val border = MaterialTheme.colorScheme.outline
-            Box(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(20.dp))
+            val border = MaterialTheme.colorScheme.outlineVariant
+            Box(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(16.dp)).testTag("review-card")
                 .background(MaterialTheme.colorScheme.surface)
-                .drawWithContent { drawContent(); val width = 1.dp.toPx(); drawRoundRect(border,
+                .drawWithContent { drawContent(); val width = 1.25.dp.toPx(); drawRoundRect(border,
                     topLeft = androidx.compose.ui.geometry.Offset(width/2, width/2),
                     size = androidx.compose.ui.geometry.Size(size.width-width, size.height-width),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()), style = Stroke(width)) }) {
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(16.dp.toPx()), style = Stroke(width)) }) {
                 key(s.visit) {
                     if (card.format == "markdown_math") MathFace(api, card, session, s, dark)
                     else {
@@ -117,23 +138,35 @@ class MainActivity : ComponentActivity() {
             }
             val media = card.media(s.revealed)
             if(media.isNotEmpty()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedButton(enabled = !s.busy && s.foreground, onClick = { if(a.playing) audio.stop() else audio.play(api, media) }) { Text(if(a.playing) "停止音频" else "播放音频") }
-                    a.error?.let { Text(it, Modifier.padding(start=8.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
+                    Text("${if(s.revealed) "背面" else "正面"}音频 · ${media.size} 个文件",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
+                    TextButton(enabled = !s.busy && s.foreground && s.ready, onClick = { if(a.playing || a.loading) audio.stop() else audio.play(api, media) }) {
+                        Icon(painterResource(if(a.playing || a.loading) R.drawable.ic_stop else R.drawable.ic_play_arrow),null,Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp)); Text(if(a.loading) "加载中（停止）" else if(a.playing) "停止" else "播放")
+                    }
                 }
+                a.error?.let { Text(it,color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
-            if (!s.revealed) Button(session::reveal, Modifier.fillMaxWidth().testTag("reveal"), enabled = !s.busy && s.foreground) { Text("显示答案") }
-            else Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf("重来", "困难", "良好", "简单").forEachIndexed { i, label ->
-                    FilledTonalButton(onClick = { session.rate(i+1) }, enabled = s.canRate, modifier = Modifier.weight(1f).testTag("rating-${i+1}"), contentPadding = PaddingValues(horizontal=4.dp, vertical=12.dp)) { Text(label) }
-                }
-            }
+            Spacer(Modifier.height(12.dp))
+            if (!s.revealed) Button(session::reveal, Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("reveal"), enabled = !s.busy && s.foreground) {
+                Text(s.countdownSeconds?.let { "显示答案 · $it 秒" } ?: "显示答案")
+            } else RatingButtons(s.canRate,session::rate)
         } else Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
             when {
                 s.busy -> CircularProgressIndicator()
                 s.error != null -> Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(s.error!!); Button(session::load) { Text("重试") } }
-                s.loaded -> Text("本次学习完成", style = MaterialTheme.typography.headlineSmall)
+                s.loaded -> Text("太棒了！当前没有需要复习的卡片",textAlign=TextAlign.Center)
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable fun RatingButtons(enabled: Boolean, rate: (Int) -> Unit) {
+    FlowRow(Modifier.fillMaxWidth().testTag("rating-buttons"),horizontalArrangement=Arrangement.spacedBy(8.dp,Alignment.CenterHorizontally),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        listOf("忘记" to Color(0xFFDC2626),"困难" to Color(0xFFD97706),"良好" to Color(0xFF059669),"简单" to Color(0xFF0284C7)).forEachIndexed { i,(label,color) ->
+            Button(onClick={rate(i+1)},enabled=enabled,colors=ButtonDefaults.buttonColors(containerColor=color,contentColor=Color.White),
+                modifier=Modifier.widthIn(min=64.dp).heightIn(min=48.dp).testTag("rating-${i+1}"),contentPadding=PaddingValues(horizontal=16.dp,vertical=8.dp)) { Text(label,maxLines=1) }
         }
     }
 }
@@ -144,26 +177,26 @@ class MainActivity : ComponentActivity() {
         if (revealed) {
             HorizontalDivider(Modifier.padding(vertical=12.dp))
             val word = card.word
-            if (!generatedBack(card) || word == null) Text(card.back, fontSize = 18.sp)
+            if (!generatedBack(card) || word == null) Text(card.back, style=MaterialTheme.typography.bodyLarge)
             else {
                 if (word.language == "ja") {
                     if(word.reading.isNotBlank()) Text(word.reading, Modifier.fillMaxWidth(), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
                     if(word.pos.isNotBlank()) Text(word.pos, style = MaterialTheme.typography.labelLarge)
-                    Text(word.translation, fontSize=18.sp)
+                    Text(word.translation, style=MaterialTheme.typography.bodyLarge)
                 } else {
                     val lines = normalizeDictionary(card.back).lines()
                     val initial = lines.firstOrNull()?.takeIf { it.matches(Regex("^/[^\\n]+/$")) }
                     val pronunciations = presentPronunciations(word.pronunciations, initial ?: word.phonetic)
                     if(pronunciations.groups.isEmpty()) {
                         val fallback = phonetic(initial ?: word.phonetic)
-                        if(fallback.isNotBlank()) Text(fallback, fontSize=20.sp)
+                        if(fallback.isNotBlank()) Text(fallback, style=MaterialTheme.typography.titleMedium)
                     } else pronunciations.groups.forEach { group ->
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(listOf(group.accentLabel, group.ipas.joinToString(" 或 ")).filter { it.isNotEmpty() }.joinToString(" "), fontSize=20.sp)
-                            if(pronunciations.showLabels && group.labels.isNotEmpty()) Text(group.labels.joinToString("；"), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(listOf(group.accentLabel, group.ipas.joinToString(" 或 ")).filter { it.isNotEmpty() }.joinToString(" "), style=MaterialTheme.typography.titleMedium)
+                            if(pronunciations.showLabels && group.labels.isNotEmpty()) Text(group.labels.joinToString("；"), style=MaterialTheme.typography.bodyMedium)
                         }
                     }
-                    if(!notesCoverMeanings(normalizeDictionary(word.translation), word.pronunciations)) Text(normalizeDictionary(word.translation), fontSize=18.sp)
+                    if(!notesCoverMeanings(normalizeDictionary(word.translation), word.pronunciations)) Text(normalizeDictionary(word.translation), style=MaterialTheme.typography.bodyLarge)
                 }
                 word.senses.forEach { sense ->
                     val details = runCatching { JSONArray(sense.details).objects().take(2) }.getOrDefault(emptyList())

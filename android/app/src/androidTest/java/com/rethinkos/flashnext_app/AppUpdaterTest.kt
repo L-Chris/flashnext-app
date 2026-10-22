@@ -58,7 +58,8 @@ class AppUpdaterTest {
             instrumentation.context.assets.open(path).use { input -> destination.outputStream().use { input.copyTo(it) } }
         }
     }.also { assertTrue("Missing fixture $path",it.isFile) }
-    private fun info(file: File,version: String="0.3.2") = Update(version,true,
+    private fun info(file: File,version: String=context.packageManager.getPackageArchiveInfo(file.absolutePath,0)?.versionName
+        ?: error("Cannot read fixture version")) = Update(version,true,
         "https://github.com/$RELEASE_REPOSITORY/releases/download/v$version/FlashNext-$version-android-x86_64.apk",
         file.length(),sha256(file))
     private class LocalSource(val update: Update?,val apk: File?=null): UpdateSource {
