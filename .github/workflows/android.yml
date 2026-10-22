@@ -44,27 +44,15 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
-        with:
-          flutter-version: '3.47.0'
-          channel: stable
-          cache: true
-
       - name: Use upstream repositories on GitHub runners
         shell: bash
         run: |
-          sed -i '/maven.aliyun.com/d' android/settings.gradle.kts android/build.gradle.kts
-          sed -i 's#mirrors.cloud.tencent.com/gradle/#services.gradle.org/distributions/#' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i '/maven.aliyun.com/d' native-android/settings.gradle.kts
+          sed -i 's#mirrors.cloud.tencent.com/gradle/#services.gradle.org/distributions/#' native-android/gradle/wrapper/gradle-wrapper.properties
+          chmod +x native-android/gradlew
 
-      - name: Install dependencies
-        run: flutter pub get --enforce-lockfile
-
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Test
-        run: flutter test
+      - name: Test and lint native Android
+        run: native-android/gradlew -p native-android testDebugUnitTest lintDebug --console=plain
 
       - name: Configure signing
         shell: bash
@@ -81,16 +69,16 @@ jobs:
               exit 1
             fi
           done
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > native-android/app/upload-keystore.jks
           printf '%s\n' "storeFile=upload-keystore.jks" "keyAlias=$ANDROID_KEY_ALIAS" \
-            "keyPassword=$ANDROID_KEY_PASSWORD" "storePassword=$ANDROID_STORE_PASSWORD" > android/key.properties
+            "keyPassword=$ANDROID_KEY_PASSWORD" "storePassword=$ANDROID_STORE_PASSWORD" > native-android/key.properties
 
       - name: Build APK
-        run: flutter build apk --release --split-per-abi --split-debug-info=build/android-symbols
+        run: native-android/gradlew -p native-android assembleRelease --console=plain
 
       - name: Remove signing files
         if: always()
-        run: rm -f android/key.properties android/app/upload-keystore.jks
+        run: rm -f native-android/key.properties native-android/app/upload-keystore.jks
 
       - name: Package APK
         env:
@@ -98,16 +86,16 @@ jobs:
         run: |
           mkdir -p dist
           for abi in arm64-v8a armeabi-v7a x86_64; do
-            cp "build/app/outputs/flutter-apk/app-$abi-release.apk" "dist/FlashNext-$VERSION-android-$abi.apk"
+            cp "build/native/app/outputs/apk/release/app-$abi-release.apk" "dist/FlashNext-$VERSION-android-$abi.apk"
           done
           cd dist
           sha256sum ./*.apk > SHA256SUMS.txt
 
-      - name: Upload Dart debug symbols
+      - name: Upload R8 mapping
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: flashnext-symbols-${{ steps.version.outputs.name }}-${{ github.run_number }}
-          path: build/android-symbols/*.symbols
+          path: build/native/app/outputs/mapping/release/mapping.txt
           if-no-files-found: error
           retention-days: 90
 
