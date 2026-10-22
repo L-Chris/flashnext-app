@@ -86,7 +86,7 @@ jobs:
             "keyPassword=$ANDROID_KEY_PASSWORD" "storePassword=$ANDROID_STORE_PASSWORD" > android/key.properties
 
       - name: Build APK
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --release --split-per-abi --split-debug-info=build/android-symbols
 
       - name: Remove signing files
         if: always()
@@ -102,6 +102,14 @@ jobs:
           done
           cd dist
           sha256sum ./*.apk > SHA256SUMS.txt
+
+      - name: Upload Dart debug symbols
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: flashnext-symbols-${{ steps.version.outputs.name }}-${{ github.run_number }}
+          path: build/android-symbols/*.symbols
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Upload APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

@@ -59,7 +59,7 @@ Android SDK 路径在本机的 `android/local.properties` 中配置。
 ## Tag 自动构建 Android
 
 推送 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
-工作流使用 Flutter 3.47.0 / Java 17，执行依赖校验、静态检查、测试和 release APK 构建。
+工作流使用 Flutter 3.47.0 / Java 17，执行依赖校验、静态检查、测试和 release APK 构建。Dart 调试信息通过 `--split-debug-info` 分离，以减小 APK；对应符号另存为 `flashnext-symbols-<版本>-<运行编号>` Artifact，保存 90 天，排查历史崩溃时需保留匹配构建的符号文件。
 版本名和构建号取自 `pubspec.yaml`（当前为 `0.2.0+7`）；每次发布都应提高版本名和构建号。
 tag 必须为与版本名匹配的 `vX.Y.Z`，不匹配时构建会失败，避免 App 更新判断与 APK 实际版本不一致。
 
@@ -73,6 +73,8 @@ tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-a
 发布说明优先读取 `docs/releases/<tag>.md`，没有该文件则使用自动生成的说明。已有 Release 不会被覆盖。
 也可在 Actions → Build Android → 对应运行 → Artifacts 下载 `flashnext-android-<运行编号>`，保存 90 天。
 手动运行只构建和上传 Artifact，不创建 Release。目前只支持 Android。
+
+当前 arm64 包的主体是 Flutter 引擎与编译代码。体积分解和调试信息分离的实测结果见 [APK 体积分析](docs/implementation/apk-size-2026-10-22.md)。
 
 ## 应用内更新
 
