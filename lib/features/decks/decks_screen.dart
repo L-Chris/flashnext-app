@@ -74,13 +74,13 @@ class _DecksScreenState extends ConsumerState<DecksScreen> {
   }
 }
 
-class _DeckTile extends StatelessWidget {
+class _DeckTile extends ConsumerWidget {
   const _DeckTile({required this.deck});
 
   final Deck deck;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Card(
       child: ListTile(
@@ -102,9 +102,12 @@ class _DeckTile extends StatelessWidget {
             ),
           ],
         ),
-        onTap: () => context.push(
-          '/review/${deck.id}?name=${Uri.encodeComponent(deck.name)}',
-        ),
+        onTap: () async {
+          await context.push(
+            '/review/${deck.id}?name=${Uri.encodeComponent(deck.name)}',
+          );
+          if (context.mounted) ref.invalidate(decksProvider);
+        },
       ),
     );
   }

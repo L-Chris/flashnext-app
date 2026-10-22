@@ -7,6 +7,7 @@ import '../../core/network/api_client.dart';
 import '../../core/providers.dart';
 import '../../models/study.dart';
 import 'review_audio.dart';
+import 'review_card_frame.dart';
 import 'review_session.dart';
 import 'study_card_face.dart';
 
@@ -67,15 +68,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) =>
       _session.setForeground(state == AppLifecycleState.resumed);
 
-  Future<void> _rate(int rating) async {
-    await _session.rate(rating);
-    if (mounted) ref.invalidate(decksProvider);
-  }
+  Future<void> _rate(int rating) => _session.rate(rating);
 
-  Future<void> _undo() async {
-    await _session.undo();
-    if (mounted) ref.invalidate(decksProvider);
-  }
+  Future<void> _undo() => _session.undo();
 
   @override
   void dispose() {
@@ -91,7 +86,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
   Widget build(BuildContext context) {
     final session = _session;
     final card = session.card;
-    final queue = session.queue;
     final media = card == null
         ? const <CardMedia>[]
         : mediaForSide(card, session.revealed);
@@ -122,15 +116,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
                     ),
                   ),
                 ),
-              if (queue != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(
-                    '新卡剩余 ${queue.usage.newRemaining} · 复习剩余 ${queue.usage.reviewRemaining}'
-                    '${queue.counts.hiddenByLimit > 0 ? ' · ${queue.counts.hiddenByLimit} 张已达限额' : ''}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
               if (session.error != null)
                 Expanded(
                   child: Center(
@@ -154,14 +139,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
                 )
               else ...[
                 Expanded(
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                  child: ReviewCardFrame(
                     child: StudyCardFace(
                       key: ValueKey(session.visit),
                       api: session.api,
@@ -254,11 +232,6 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
                           child: Text(rating.label),
                         ),
                     ],
-                  ),
-                if (session.busy)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: LinearProgressIndicator(),
                   ),
               ],
             ],

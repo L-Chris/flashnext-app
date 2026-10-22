@@ -7,7 +7,7 @@
 最新版本：[v0.2.0](https://github.com/L-Chris/flashnext-app/releases/tag/v0.2.0)，更新内容见 [发布说明](docs/releases/v0.2.0.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包。
 
 FlashNext 的 Android 在线复习客户端，使用 Flutter、Riverpod、Dio 和 go_router。
-包含牌组列表、卡片复习与撤销、每日限额提示、服务器设置和连接测试。
+包含牌组列表、卡片复习与撤销、牌组学习设置、服务器设置和连接测试。
 
 本工程已从 `../flashnext/app` 迁入；后端与 Web 工程位于 `../flashnext`。
 
@@ -20,6 +20,8 @@ FlashNext 的 Android 在线复习客户端，使用 Flutter、Riverpod、Dio �
 支持服务端 Markdown/数学公式、英日词卡与正反面音频顺序播放。倒计时从内容就绪后开始，后台暂停，手动显示会取消倒计时。评分和撤销由服务器处理，队列完成后仍可撤销。
 
 英语多读音默认显示各自的词性、词义和时态说明；同用法的备选音标以“或”合并。只有读音说明完整覆盖原释义时才隐藏重复释义，自定义笔记保留原文。详见 [多读音同步记录](docs/implementation/app-pronunciations-2026-10-21.md)。
+
+复习页不显示剩余额度和底部进度条。评分确认后优先使用缓存队列切卡，退出复习时再刷新首页统计；学习卡到期、撤销等情况会重新对齐服务端。评分仍需联网确认，详见 [复习切卡优化](docs/implementation/app-review-cache-2026-10-22.md)。
 
 设置中可查看本牌组 FSRS 参数、来源、日志数和训练门槛，手动启动训练并查看状态；不会自动重建日程。本次未开放高级手动参数或重建操作。
 
