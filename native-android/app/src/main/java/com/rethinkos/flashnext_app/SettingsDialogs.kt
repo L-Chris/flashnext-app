@@ -97,9 +97,10 @@ import java.time.ZoneId
     var autoplay by remember { mutableStateOf(false) }; var immediate by remember { mutableStateOf(false) }
     var delay by remember { mutableStateOf("") }; var automatic by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(true) }; var error by remember { mutableStateOf<String?>(null) }; var discard by remember { mutableStateOf(false) }
+    var saving by remember { mutableStateOf(false) }
     fun apply(s: DeckSettings) { saved=s; fresh=s.newPerDay.toString(); review=s.reviewPerDay.toString(); rollover=s.rolloverHour.toString(); autoplay=s.autoplay; immediate=s.immediate; automatic=s.revealSeconds!=null; delay=s.revealSeconds?.toString().orEmpty() }
     fun dirty(): Boolean = saved?.let { fresh != it.newPerDay.toString() || review != it.reviewPerDay.toString() || rollover != it.rolloverHour.toString() || autoplay != it.autoplay || immediate != it.immediate || automatic != (it.revealSeconds!=null) || automatic && delay != it.revealSeconds?.toString() } ?: false
-    fun dismiss() { if(busy) return; if(dirty()) discard=true else onDismiss() }
+    fun dismiss() { if(saving) return; if(dirty()) discard=true else onDismiss() }
     suspend fun load() { busy=true; error=null
         try { apply(api.settings(deck.id)) } catch(e: CancellationException) { throw e } catch(e: Exception) { error=e.userMessage() }; busy=false
     }
@@ -114,17 +115,17 @@ import java.time.ZoneId
             Toggle("定时显示答案", automatic, !busy) { automatic=it }
             if(automatic) NumericField(delay, {delay=it}, "显示答案延迟（1–3600 秒）", !busy)
             Button(enabled = !busy && dirty(), onClick = { scope.launch {
-                busy=true; error=null
+                busy=true; saving=true; error=null
                 try {
                     fun number(s: String, range: IntRange, label: String): Int { val n=s.toIntOrNull(); require(n!=null && n in range) { "$label 超出范围" }; return n }
                     val draft = DeckSettings(number(fresh,0..100000,"每日新卡"),number(review,0..100000,"每日复习"),number(rollover,0..23,"日切时间"),autoplay,immediate,if(automatic) number(delay,1..3600,"显示答案延迟") else null)
                     apply(api.saveSettings(deck.id, draft.changesFrom(saved!!))); onSaved()
-                } catch(e: CancellationException) { throw e } catch(e: Exception) { error=e.userMessage() }; busy=false
+                } catch(e: CancellationException) { throw e } catch(e: Exception) { error=e.userMessage() }; busy=false; saving=false
             } }) { Text(if(busy) "保存中…" else "保存") }
             FsrsPanel(api, deck.id)
         } else if(busy) CircularProgressIndicator() else TextButton(onClick={scope.launch { load() }}) { Text("重新加载") }
         error?.let { Text(it, color=MaterialTheme.colorScheme.error) }
-        TextButton(onClick=::dismiss, enabled=!busy) { Text("关闭") }
+        TextButton(onClick=::dismiss, enabled=!saving) { Text("关闭") }
     }
     if(discard) DiscardDialog(onDiscard=onDismiss, onKeep={discard=false})
 }

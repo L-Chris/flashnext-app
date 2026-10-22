@@ -45,11 +45,12 @@ Android 主实现迁入 `native-android/`，使用 Kotlin + Jetpack Compose。�
 ## 验证
 
 - 14 项 JVM 测试通过：队列缓存、学习到期、后台与内容就绪计时、立即背面、失效回调、撤销失败降级、评分失败、设置 null 与差量、API 编码兼容、预览缓存、更新来源校验、读音和原文字段保留。
-- Android 15 模拟器 5 项设备测试通过：复习评分到完成及撤销、弹窗内外点击与未保存草稿、音频顺序与手动停止、短暂焦点丢失后不续播、真实 KaTeX 正反面渲染。
+- Android 15 模拟器 6 项设备测试通过：复习评分到完成及撤销、弹窗内外点击与未保存草稿、接口等待时关闭弹窗、音频顺序与手动停止、短暂焦点丢失后不续播、真实 KaTeX 正反面渲染。
 - 公式测试通过仅允许 `POST /api/content/preview` 和读取公式资源的本机桥接访问原后端，检查正反面 `.katex` 节点、字体错误状态、隐藏答案和评分可用状态，并检查截图。所有评分、撤销、设置写入均针对本机 MockWebServer。
 - Android Lint 无错误；保留的警告包括锁定竖屏（用户要求）、固定依赖版本和 KTX 风格建议。Compose BOM 固定 `2026.03.00` 以匹配 compileSdk 36；最新 BOM 需要 SDK 37，不混用。
 - 三个 release 架构构建通过；apksigner、版本号、包名、ABI 与无 Flutter 库检查通过；工作流通过 actionlint。
 - Redmi K60 原无线调试端口 41543 已关闭，本轮真机验证待重新连接。
+- GitHub Actions 已完成原生测试、Lint、固定签名、三架构 release 构建和 Artifact 上传；手动触发没有创建 Release。
 
 公式和圆角边框的模拟器截图：
 

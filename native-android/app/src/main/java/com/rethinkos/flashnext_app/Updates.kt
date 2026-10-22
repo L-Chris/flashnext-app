@@ -8,7 +8,7 @@ import org.json.JSONObject
 import java.net.URI
 
 data class Update(val version: String, val available: Boolean, val url: String)
-fun parseVersion(value: String): List<Int>? = Regex("^[vV]?([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:\\+[0-9]+)?$").matchEntire(value.trim())?.groupValues?.drop(1)?.map { it.toIntOrNull() ?: return null }
+fun parseVersion(value: String): List<Int>? = Regex("^[vV]?(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:\\+[0-9]+)?$").matchEntire(value.trim())?.groupValues?.drop(1)?.map { it.toIntOrNull() ?: return null }
 fun parseUpdate(body: JSONObject, current: String, abis: List<String>): Update? {
     if(body.optBoolean("draft") || body.optBoolean("prerelease")) return null
     val tag = body.text("tag_name"); val version = parseVersion(tag) ?: return null

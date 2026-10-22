@@ -13,6 +13,8 @@ import org.json.JSONObject
 import org.junit.*
 import org.junit.Assert.*
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /** All mutations target a loopback test server. No real study records are modified. */
 class NativeAppTest {
@@ -20,12 +22,15 @@ class NativeAppTest {
     private val server = MockWebServer()
     private val requests=CopyOnWriteArrayList<String>()
     private var rated=false
+    private var settingsGate: CountDownLatch?=null
     private lateinit var model: AppViewModel
     private val card="""{"id":1,"front":"native question","back":"native answer","presentation":{}}"""
     @Before fun setup() {
         server.dispatcher=object: Dispatcher() {
-            override fun dispatch(r: RecordedRequest): MockResponse {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                val r=request
                 requests.add("${r.method} ${r.path}")
+                if(r.path=="/api/decks/1/settings") settingsGate?.await(20,TimeUnit.SECONDS)
                 val data=when(r.path) {
                     "/api/decks" -> """[{"id":1,"name":"Native test","dueCount":1}]"""
                     "/api/decks/1/cards/due" -> """{"cards":${if(rated) "[]" else "[$card]"}}"""
@@ -46,6 +51,7 @@ class NativeAppTest {
         rule.runOnUiThread { model=AppViewModel(app) }
     }
     @After fun cleanup() {
+        settingsGate?.countDown()
         rule.runOnUiThread { model.leaveReview(false); model.api.close() }
         val app=InstrumentationRegistry.getInstrumentation().targetContext
         app.getSharedPreferences("flashnext",0).edit().clear().commit()
@@ -78,6 +84,17 @@ class NativeAppTest {
         rule.onNodeWithText("牌组设置").performClick(); waitText("每日新卡")
         rule.onNodeWithText("每日新卡").performTextReplacement("25"); androidx.test.espresso.Espresso.closeSoftKeyboard()
         outsideTap(); waitText("放弃未保存的修改？"); rule.onNodeWithText("继续编辑").performClick(); rule.onNodeWithText("25").assertExists()
+        assertEquals(0,requests.count { it=="POST /api/decks/1/settings" })
+    }
+    @Test fun loadingSettingsCanBeDismissedWithoutWaitingForNetwork() {
+        settingsGate=CountDownLatch(1)
+        rule.setContent { MaterialTheme { FlashNext(model,false) } }
+        waitText("Native test"); rule.onNodeWithText("牌组设置").performClick(); waitText("关闭")
+        rule.waitUntil { requests.contains("GET /api/decks/1/settings") }
+        try {
+            outsideTap()
+            rule.waitUntil(5000) { rule.onAllNodesWithText("关闭").fetchSemanticsNodes().isEmpty() }
+        } finally { settingsGate?.countDown() }
         assertEquals(0,requests.count { it=="POST /api/decks/1/settings" })
     }
     private fun outsideTap() {

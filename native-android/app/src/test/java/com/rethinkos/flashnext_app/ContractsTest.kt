@@ -49,6 +49,7 @@ class ContractsTest {
         assertFalse(parseUpdate(body,"0.4.0",emptyList())!!.available)
         assertNull(parseUpdate(JSONObject(body.toString()).put("prerelease",true),"0.2.0",emptyList()))
         assertNull(parseUpdate(JSONObject(body.toString()).put("tag_name","v0.3.0-rc1"),"0.2.0",emptyList()))
+        assertNull(parseVersion("v0.03.0"))
         assertTrue(runCatching { parseUpdate(body.put("html_url","https://github.com.evil.example/L-Chris/flashnext-app/releases/tag/v0.3.0"),"0.2.0",emptyList()) }.isFailure)
         assertFalse(sameOrigin(DEFAULT_SERVER,"https://evil.example/font.woff2")); assertFalse(sameOrigin(DEFAULT_SERVER,"https://x@mem.home.rethinkos.com/font"))
         assertEquals(DEFAULT_SERVER,normalizeServer(" $DEFAULT_SERVER/ "))
