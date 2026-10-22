@@ -1,1 +1,2 @@
-/native-android/gradlew text eol=lf
+/android/gradlew text eol=lf
+/android/version.properties text eol=lf

@@ -26,14 +26,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          package_version=$(sed -nE 's/^version:[[:space:]]*([^[:space:]#]+).*$/\1/p' pubspec.yaml)
-          if [[ ! "$package_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\+[1-9][0-9]*$ ]]; then
-            echo 'Expected version: X.Y.Z+BUILD in pubspec.yaml' >&2
+          version=$(sed -nE 's/^versionName=([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' android/version.properties)
+          build=$(sed -nE 's/^versionCode=([1-9][0-9]*)$/\1/p' android/version.properties)
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || ! "$build" =~ ^[1-9][0-9]*$ ]]; then
+            echo 'Expected versionName=X.Y.Z and positive versionCode in android/version.properties' >&2
             exit 1
           fi
-          version="${package_version%%+*}"
           if [[ "$GITHUB_REF_TYPE" == tag && "$GITHUB_REF_NAME" != "v$version" ]]; then
-            echo "Expected tag v$version to match pubspec.yaml" >&2
+            echo "Expected tag v$version to match android/version.properties" >&2
             exit 1
           fi
           echo "name=$version" >> "$GITHUB_OUTPUT"
@@ -47,12 +47,12 @@ jobs:
       - name: Use upstream repositories on GitHub runners
         shell: bash
         run: |
-          sed -i '/maven.aliyun.com/d' native-android/settings.gradle.kts
-          sed -i 's#mirrors.cloud.tencent.com/gradle/#services.gradle.org/distributions/#' native-android/gradle/wrapper/gradle-wrapper.properties
-          chmod +x native-android/gradlew
+          sed -i '/maven.aliyun.com/d' android/settings.gradle.kts
+          sed -i 's#mirrors.cloud.tencent.com/gradle/#services.gradle.org/distributions/#' android/gradle/wrapper/gradle-wrapper.properties
+          chmod +x android/gradlew
 
       - name: Test and lint native Android
-        run: native-android/gradlew -p native-android testDebugUnitTest lintDebug --console=plain
+        run: android/gradlew -p android testDebugUnitTest lintDebug --console=plain
 
       - name: Configure signing
         shell: bash
@@ -69,16 +69,16 @@ jobs:
               exit 1
             fi
           done
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > native-android/app/upload-keystore.jks
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
           printf '%s\n' "storeFile=upload-keystore.jks" "keyAlias=$ANDROID_KEY_ALIAS" \
-            "keyPassword=$ANDROID_KEY_PASSWORD" "storePassword=$ANDROID_STORE_PASSWORD" > native-android/key.properties
+            "keyPassword=$ANDROID_KEY_PASSWORD" "storePassword=$ANDROID_STORE_PASSWORD" > android/key.properties
 
       - name: Build APK
-        run: native-android/gradlew -p native-android assembleRelease --console=plain
+        run: android/gradlew -p android assembleRelease --console=plain
 
       - name: Remove signing files
         if: always()
-        run: rm -f native-android/key.properties native-android/app/upload-keystore.jks
+        run: rm -f android/key.properties android/app/upload-keystore.jks
 
       - name: Package APK
         env:

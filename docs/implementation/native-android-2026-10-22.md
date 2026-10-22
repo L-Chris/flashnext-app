@@ -1,6 +1,6 @@
 # 原生 Android 迁移（2026-10-22）
 
-Android 主实现迁入 `native-android/`，使用 Kotlin + Jetpack Compose。移除安装包对 Flutter 引擎和 Dart AOT 的依赖，保留原 Flutter 源码作迁移参考。后端接口、FSRS 规则和线上学习数据不变。
+Android 主实现位于 `android/`，使用 Kotlin + Jetpack Compose。已移除旧 Flutter 工程，当前仅保留原生 Android 实现。后端接口、FSRS 规则和线上学习数据不变。
 
 ## 包体实测
 
@@ -34,7 +34,7 @@ Android 主实现迁入 `native-android/`，使用 Kotlin + Jetpack Compose。�
 
 ## 覆盖升级
 
-正式包名仍为 `com.rethinkos.flashnext_app`，版本读取根目录 `pubspec.yaml`，当前 `0.2.0+9`。build 8 用于此前本地验证，因此原生构建使用 9；本次没有新建 tag 或替换已有 Release。
+正式包名仍为 `com.rethinkos.flashnext_app`。迁移验证时版本为 `0.2.0+9`，当前版本由 `android/version.properties` 独立维护。build 8 用于此前本地验证，因此迁移验证使用 9；当时没有新建 tag 或替换已有 Release。
 
 固定签名 SHA-256：`f81ff936bd1e69c4f571fb0eec392bd198aa83ecff53050177fc9708045ee82f`，已用 apksigner 验证一致。debug 包名增加 `.native`，可与正式版并存。
 
@@ -59,8 +59,8 @@ Android 主实现迁入 `native-android/`，使用 Kotlin + Jetpack Compose。�
 ## 复现命令
 
 ```sh
-native-android/gradlew -p native-android testDebugUnitTest lintDebug assembleRelease
-native-android/gradlew -p native-android connectedDebugAndroidTest
+android/gradlew -p android testDebugUnitTest lintDebug assembleRelease
+android/gradlew -p android connectedDebugAndroidTest
 ```
 
 真实字体测试需要启动原有只读桥接；默认设备测试会跳过需要该桥接的单项，其余测试使用本机 mock，不依赖生产服务：
@@ -68,7 +68,7 @@ native-android/gradlew -p native-android connectedDebugAndroidTest
 ```sh
 node tool/study_preview_proxy.mjs
 adb reverse tcp:18765 tcp:18765
-native-android/gradlew -p native-android connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.previewServer=http://127.0.0.1:18765'
+android/gradlew -p android connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.previewServer=http://127.0.0.1:18765'
 ```
 
-Windows 使用 `native-android/gradlew.bat`。APK 位于 `build/native/app/outputs/apk/release/`。GitHub Actions 保存三个 APK、SHA256SUMS 和独立 R8 mapping Artifact，手动运行不创建 Release；新 tag 才发布，禁止覆盖已有 Release。
+Windows 使用 `android/gradlew.bat`。APK 位于 `build/native/app/outputs/apk/release/`。GitHub Actions 保存三个 APK、SHA256SUMS 和独立 R8 mapping Artifact，手动运行不创建 Release；新 tag 才发布，禁止覆盖已有 Release。

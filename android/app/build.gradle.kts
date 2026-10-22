@@ -2,75 +2,72 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id("dev.flutter.flutter-gradle-plugin")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
-
-val signingProperties = Properties()
+val appVersion = Properties().apply { rootProject.file("version.properties").inputStream().use { load(it) } }
 val signingFile = rootProject.file("key.properties")
-if (signingFile.exists()) {
-    signingFile.inputStream().use { signingProperties.load(it) }
-}
+val signing = Properties().apply { if (signingFile.exists()) signingFile.inputStream().use { load(it) } }
 
 android {
     namespace = "com.rethinkos.flashnext_app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
+    compileSdk = 36
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.rethinkos.flashnext_app"
-        manifestPlaceholders["appLabel"] = "FlashNext"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
-        // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
-        // flag during build.
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdk = 24
+        targetSdk = 36
+        versionName = providers.gradleProperty("versionName").orNull ?: appVersion.getProperty("versionName")
+        versionCode = providers.gradleProperty("buildNumber").orNull?.toInt() ?: appVersion.getProperty("versionCode").toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
     signingConfigs {
-        if (signingFile.exists()) {
-            create("release") {
-                keyAlias = signingProperties.getProperty("keyAlias")
-                keyPassword = signingProperties.getProperty("keyPassword")
-                storeFile = file(signingProperties.getProperty("storeFile"))
-                storePassword = signingProperties.getProperty("storePassword")
-            }
+        if (signingFile.exists()) create("release") {
+            keyAlias = signing.getProperty("keyAlias")
+            keyPassword = signing.getProperty("keyPassword")
+            storePassword = signing.getProperty("storePassword")
+            storeFile = projectDir.resolve(signing.getProperty("storeFile"))
         }
     }
-
     buildTypes {
-        for (mode in listOf("debug", "profile")) {
-            getByName(mode) {
-                // Development and native tests must never replace the release app.
-                applicationIdSuffix = ".debug"
-                manifestPlaceholders["appLabel"] = "FlashNext 测试"
-            }
-        }
+        debug { applicationIdSuffix = ".native"; manifestPlaceholders["appLabel"] = "FlashNext 原生测试" }
         release {
-            signingConfig = signingConfigs.getByName(
-                if (signingFile.exists()) "release" else "debug"
-            )
+            manifestPlaceholders["appLabel"] = "FlashNext"
+            isMinifyEnabled = true
+            isShrinkResources = true
+            if (signingFile.exists()) signingConfig = signingConfigs.getByName("release")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    buildFeatures { compose = true; buildConfig = true }
+    splits {
+        abi { isEnable = true; reset(); include("arm64-v8a", "armeabi-v7a", "x86_64"); isUniversalApk = false }
     }
+    compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17; isCoreLibraryDesugaringEnabled = true }
+    packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
+    testOptions { unitTests.isReturnDefaultValues = true }
+    providers.gradleProperty("updateFixtures").orNull?.let { sourceSets.getByName("androidTest").assets.srcDir(it) }
 }
-
-flutter {
-    source = "../.."
+kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    implementation(platform("androidx.compose:compose-bom:2026.03.00"))
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2026.03.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.7.0")
+    androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

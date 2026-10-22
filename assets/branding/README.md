@@ -1,6 +1,6 @@
 # FlashNext logo
 
-Generated with the built-in image_gen tool. The PNG is the source asset; launcher density variants are produced by flutter_launcher_icons.
+Generated with the built-in image_gen tool. The PNG is the source asset; native Android launcher density variants are stored in `android/app/src/main/res/`.
 
 Prompt:
 
