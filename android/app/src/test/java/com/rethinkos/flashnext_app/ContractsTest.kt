@@ -43,9 +43,11 @@ class ContractsTest {
         } finally { api.close(); server.shutdown() }
     }
     @Test fun `untrusted URLs and malformed versions cannot become update downloads`() {
-        val body=JSONObject("""{"tag_name":"v0.3.0","html_url":"https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.0","assets":[{"name":"FlashNext-0.3.0-android.apk","state":"uploaded","size":100,"browser_download_url":"https://evil.example/steal"}]}""")
+        val body=JSONObject("""{"tag_name":"v0.3.0","html_url":"https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.0","assets":[{"id":123,"url":"https://evil.example/api","name":"FlashNext-0.3.0-android.apk","state":"uploaded","size":100,"browser_download_url":"https://evil.example/steal"},{"id":456,"name":"SHA256SUMS.txt","state":"uploaded"}]}""")
         val next=parseUpdate(body,"0.2.0",listOf("arm64-v8a"))!!
         assertTrue(next.available); assertEquals("https://github.com/L-Chris/flashnext-app/releases/download/v0.3.0/FlashNext-0.3.0-android.apk",next.url)
+        assertEquals(123L,next.assetId); assertEquals(456L,next.checksumsAssetId)
+        assertFalse(next.json().toString().contains("evil.example"))
         assertFalse(parseUpdate(body,"0.4.0",emptyList())!!.available)
         assertNull(parseUpdate(JSONObject(body.toString()).put("prerelease",true),"0.2.0",emptyList()))
         assertNull(parseUpdate(JSONObject(body.toString()).put("tag_name","v0.3.0-rc1"),"0.2.0",emptyList()))

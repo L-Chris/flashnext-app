@@ -4,7 +4,7 @@
 
 <img src="assets/branding/logo.png" width="96" alt="FlashNext logo" />
 
-最新版本：[v0.3.2](https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.2)，更新内容见 [发布说明](docs/releases/v0.3.2.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包，原生版约 2.35 MB。
+最新版本：[v0.3.3](https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.3)，更新内容见 [发布说明](docs/releases/v0.3.3.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包，原生版约 2.37 MB。
 
 FlashNext 的 Android 在线复习客户端，使用 Kotlin、Jetpack Compose、系统 WebView 和 Media3。
 包含牌组列表、卡片复习与撤销、牌组学习设置、服务器设置和连接测试。
@@ -39,7 +39,7 @@ android/gradlew -p android assembleRelease
 ```
 
 APK 输出目录：`build/native/app/outputs/apk/release/`。普通手机选择 `app-arm64-v8a-release.apk`；32 位旧机和 x86_64 设备选择对应包。不生成通用包。
-三个架构使用相同 versionCode，覆盖升级需提高构建号。版本统一读取 `android/version.properties`，当前为 `0.3.2+12`；也可用 `-PbuildNumber=数字` 覆盖本地验证构建号。
+三个架构使用相同 versionCode，覆盖升级需提高构建号。版本统一读取 `android/version.properties`，当前为 `0.3.3+13`；也可用 `-PbuildNumber=数字` 覆盖本地验证构建号。
 Android SDK 路径在本机 `android/local.properties` 中配置，例如 `sdk.dir=F\:/android-sdk`。
 详细实现、验证命令与迁移说明见 [原生 Android 迁移](docs/implementation/native-android-2026-10-22.md)。
 
@@ -59,13 +59,13 @@ Android SDK 路径在本机 `android/local.properties` 中配置，例如 `sdk.d
 
 推送 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
 工作流使用 Java 17 和 Gradle，执行原生单元测试、Android Lint 和 release 构建。启用 R8 代码优化及资源裁剪；对应 `mapping.txt` 另存为 `flashnext-symbols-<版本>-<运行编号>` Artifact，保存 90 天，排查历史崩溃需使用匹配构建的文件。
-版本名和构建号取自 `android/version.properties`（当前为 `0.3.2+12`）；每次发布都应提高版本名和构建号。发布规则见 [AGENTS.md](AGENTS.md#github-release-notes)，完整步骤见 [发布流程](docs/RELEASING.md)。
+版本名和构建号取自 `android/version.properties`（当前为 `0.3.3+13`）；每次发布都应提高版本名和构建号。发布规则见 [AGENTS.md](AGENTS.md#github-release-notes)，完整步骤见 [发布流程](docs/RELEASING.md)。
 tag 必须为与版本名匹配的 `vX.Y.Z`，不匹配时构建会失败，避免 App 更新判断与 APK 实际版本不一致。
 
 ```sh
 # 先修改 android/version.properties 的 versionName 和 versionCode
-git tag -a v0.3.2 -m "FlashNext v0.3.2"
-git push --atomic origin main refs/tags/v0.3.2
+git tag -a v0.3.3 -m "FlashNext v0.3.3"
+git push --atomic origin main refs/tags/v0.3.3
 ```
 
 tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-android-arm64-v8a.apk`、`FlashNext-X.Y.Z-android-armeabi-v7a.apk`、`FlashNext-X.Y.Z-android-x86_64.apk` 和 `SHA256SUMS.txt`。
@@ -81,6 +81,7 @@ tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-a
 应用启动时自动检查 GitHub 最新正式 Release（最多每 6 小时一次），也可在设置中手动检查。发现新版后提示更新，点击“立即更新”由 App 下载适合本机架构的 APK，并显示进度。
 下载完成后校验 SHA-256、包名、版本、签名和架构，再打开 Android 安装界面。首次更新需要允许此应用安装未知应用，授权返回后继续安装；取消安装后可直接重试，不必重新下载。
 更新连接独立于学习服务器，忽略草稿、预发布和旧版本。Android 安装仍需用户确认。
+从 0.3.3 起通过 GitHub 官方附件 API 下载，显示连接和重试状态，并在本轮下载断线后自动续传。旧版若仍在应用内下载超时，请先用手机浏览器从 Release 页面下载对应架构的安装包，覆盖安装一次；后续更新即可使用修复后的下载机制。排查与验证见 [更新超时修复记录](docs/implementation/android-update-timeout-2026-10-23.md)。
 实现与验证记录见 [原生设置与应用内更新](docs/implementation/android-updates-settings-2026-10-22.md)。
 
 ## 固定签名

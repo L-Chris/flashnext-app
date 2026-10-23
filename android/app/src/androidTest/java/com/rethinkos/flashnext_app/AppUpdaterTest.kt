@@ -65,7 +65,7 @@ class AppUpdaterTest {
     private class LocalSource(val update: Update?,val apk: File?=null): UpdateSource {
         var checks=0; var downloads=0
         override suspend fun latest(): Update? { checks++; return update }
-        override suspend fun download(update: Update,directory: File,progress: (Long,Long)->Unit): DownloadedUpdate = withContext(Dispatchers.IO) {
+        override suspend fun download(update: Update,directory: File,status: (TransferStatus)->Unit,progress: (Long,Long)->Unit): DownloadedUpdate = withContext(Dispatchers.IO) {
             downloads++; directory.mkdirs()
             val target=File.createTempFile("download-",".part",directory)
             apk!!.copyTo(target,overwrite=true); progress(target.length(),target.length())
@@ -87,6 +87,31 @@ class AppUpdaterTest {
         rule.runOnUiThread { updater.check() }; rule.waitUntil { source.checks==2 && !updater.state.value.busy }
         now+=6*60*60*1000
         rule.runOnUiThread { updater.check(automatic=true) }; rule.waitUntil { source.checks==3 }
+    }
+    @Test fun connectionStageIsVisibleBeforeBytesAndTimeoutAllowsRetryAndCancel() {
+        var gate=CompletableDeferred<Unit>()
+        val source=object: UpdateSource {
+            override suspend fun latest()=Update("9.0.0",true,"https://github.com/$RELEASE_REPOSITORY/releases/download/v9.0.0/FlashNext-9.0.0-android-x86_64.apk",100,"a".repeat(64))
+            override suspend fun download(update: Update,directory: File,status: (TransferStatus)->Unit,progress: (Long,Long)->Unit): DownloadedUpdate {
+                status(TransferStatus(TransferPhase.CONNECTING,host="release-assets.githubusercontent.com"))
+                gate.await()
+                throw UpdateTransportException(UpdateResource.APK,"release-assets.githubusercontent.com",java.net.SocketTimeoutException())
+            }
+        }
+        val updater=controller(source); begin(updater)
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("正在连接安装包下载节点…").fetchSemanticsNodes().isNotEmpty() }
+        rule.onAllNodesWithText("0%").assertCountEquals(0)
+        gate.complete(Unit)
+        rule.waitUntil(10_000) { updater.state.value.stage==UpdateStage.ERROR }
+        assertFalse(updater.state.value.busy)
+        assertTrue(updater.state.value.message!!.contains("release-assets.githubusercontent.com"))
+        rule.onNodeWithText("重新下载").assertIsEnabled()
+        gate=CompletableDeferred()
+        rule.onNodeWithText("重新下载").performClick()
+        rule.waitUntil(10_000) { updater.state.value.stage==UpdateStage.DOWNLOADING }
+        rule.onNodeWithText("取消下载").performClick()
+        rule.waitUntil(10_000) { updater.state.value.stage==UpdateStage.AVAILABLE }
+        assertFalse(updater.state.value.busy)
     }
     @Test fun verifiedDownloadSurvivesControllerRecreationAndDetectsTampering() {
         val apk=fixture(); val source=LocalSource(info(apk),apk); val updater=controller(source)

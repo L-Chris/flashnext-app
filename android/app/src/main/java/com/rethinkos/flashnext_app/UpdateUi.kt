@@ -68,7 +68,12 @@ fun updateInstallIntent(context: Context,file: File): Intent {
             title={ Text(when { downloading -> "下载更新"; verifying -> "校验安装包"; else -> "新版本 ${state.info!!.version}" }) },
             text={ Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 when {
-                    downloading -> { LinearProgressIndicator(progress={ if(state.total>0) state.bytes.toFloat()/state.total else 0f },modifier=Modifier.fillMaxWidth()); Text("${if(state.total>0) state.bytes*100/state.total else 0}%") }
+                    downloading -> {
+                        Text(state.transfer?.label ?: "正在连接下载服务器…")
+                        if(state.transfer?.phase!=TransferPhase.RECEIVING) LinearProgressIndicator(modifier=Modifier.fillMaxWidth())
+                        else LinearProgressIndicator(progress={ if(state.total>0) state.bytes.toFloat()/state.total else 0f },modifier=Modifier.fillMaxWidth())
+                        if(state.bytes>0) Text("${if(state.total>0) state.bytes*100/state.total else 0}%")
+                    }
                     verifying -> CircularProgressIndicator()
                     else -> Text(state.message ?: "下载完成后将打开安装界面")
                 }
@@ -87,7 +92,7 @@ fun updateInstallIntent(context: Context,file: File): Intent {
     Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
         TextButton(enabled=!state.busy,onClick={ updater.check() }) { Text(if(state.stage==UpdateStage.CHECKING) "检查中…" else "检查更新") }
         if(state.info!=null) TextButton(onClick={ if(state.downloaded!=null) updater.requestInstall() else updater.showDialog() }) {
-            Text(when { state.stage==UpdateStage.DOWNLOADING -> "下载中 ${if(state.total>0) state.bytes*100/state.total else 0}%"; state.stage==UpdateStage.VERIFYING -> "校验中…"; state.downloaded!=null -> "安装更新"; else -> "更新至 ${state.info!!.version}" })
+            Text(when { state.stage==UpdateStage.DOWNLOADING -> if(state.transfer?.phase==TransferPhase.RECEIVING) "下载中 ${if(state.total>0) state.bytes*100/state.total else 0}%" else "正在连接下载…"; state.stage==UpdateStage.VERIFYING -> "校验中…"; state.downloaded!=null -> "安装更新"; else -> "更新至 ${state.info!!.version}" })
         }
     }
     if(state.info==null) state.message?.let { Text(it,style=MaterialTheme.typography.bodySmall) }

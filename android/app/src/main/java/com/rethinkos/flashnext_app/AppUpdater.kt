@@ -15,7 +15,7 @@ import org.json.JSONObject
 enum class UpdateStage { IDLE, CHECKING, AVAILABLE, DOWNLOADING, VERIFYING, READY, ERROR }
 data class UpdateState(val stage: UpdateStage=UpdateStage.IDLE, val info: Update?=null, val downloaded: File?=null,
     val bytes: Long=0, val total: Long=0, val dialog: Boolean=false, val installRequested: Boolean=false,
-    val awaitingPermission: Boolean=false, val message: String?=null) {
+    val awaitingPermission: Boolean=false, val message: String?=null, val transfer: TransferStatus?=null) {
     val busy get() = stage in listOf(UpdateStage.CHECKING,UpdateStage.DOWNLOADING,UpdateStage.VERIFYING)
 }
 fun interface ApkVerifier { fun verify(file: File, update: Update) }
@@ -59,7 +59,8 @@ class AppUpdater(context: Context, private val scope: CoroutineScope,
         directory.listFiles()?.filter { it.name.startsWith("download-") && it.name.endsWith(".part") }?.forEach { it.delete() }
         val restored=runCatching {
             val j=JSONObject(preferences.getString("downloaded",null) ?: return@runCatching null)
-            val info=Update(j.text("version"),true,j.text("url"),j.optLong("size"),j.text("sha256").takeIf { it.isNotBlank() },j.text("checksumsUrl"))
+            val info=Update(j.text("version"),true,j.text("url"),j.optLong("size"),j.text("sha256").takeIf { it.isNotBlank() },j.text("checksumsUrl"),
+                j.optLong("assetId"),j.optLong("checksumsAssetId"))
             if(newerVersion(info.version,BuildConfig.VERSION_NAME) && trustedReleaseUrl(info.url) && info.size in 1..MAX_UPDATE_BYTES &&
                 info.sha256?.matches(Regex("[0-9a-f]{64}"))==true && target.isFile)
                 UpdateState(UpdateStage.READY,info,target,awaitingPermission=preferences.getBoolean("awaitingPermission",false)) else null
@@ -81,7 +82,7 @@ class AppUpdater(context: Context, private val scope: CoroutineScope,
                 mutable.value=if(next==null) UpdateState(message=if(automatic) null else "已是最新版本")
                     else UpdateState(UpdateStage.AVAILABLE,next,dialog=true)
             } catch(e: CancellationException) { throw e }
-            catch(e: Exception) { mutable.value=previous.copy(message=if(automatic) previous.message else e.userMessage()) }
+            catch(e: Exception) { mutable.value=previous.copy(message=if(automatic) previous.message else e.updateMessage()) }
         }
     }
     fun showDialog() { mutable.update { it.copy(dialog=true) } }
@@ -90,11 +91,13 @@ class AppUpdater(context: Context, private val scope: CoroutineScope,
         val info=state.value.info ?: return
         if(state.value.busy) return
         val generation=++operation
-        mutable.update { it.copy(stage=UpdateStage.DOWNLOADING,downloaded=null,bytes=0,total=info.size,message=null) }
+        mutable.update { it.copy(stage=UpdateStage.DOWNLOADING,downloaded=null,bytes=0,total=info.size,message=null,transfer=TransferStatus(TransferPhase.CONNECTING)) }
         job=scope.launch {
             var pending: File?=null
             try {
-                val result=source.download(info,directory) { bytes,total -> if(generation==operation) mutable.update { it.copy(bytes=bytes,total=total) } }
+                val result=source.download(info,directory,status={ value -> if(generation==operation) mutable.update { it.copy(transfer=value) } }) {
+                    bytes,total -> if(generation==operation) mutable.update { it.copy(bytes=bytes,total=total) }
+                }
                 pending=result.file
                 mutable.update { it.copy(stage=UpdateStage.VERIFYING) }
                 withContext(Dispatchers.IO) {
@@ -105,13 +108,13 @@ class AppUpdater(context: Context, private val scope: CoroutineScope,
                 preferences.edit().putString("downloaded",result.update.json().toString()).apply()
                 mutable.value=UpdateState(UpdateStage.READY,result.update,target,dialog=false,installRequested=true)
             } catch(e: CancellationException) { pending?.delete(); throw e }
-            catch(e: Exception) { pending?.delete(); mutable.update { it.copy(stage=UpdateStage.ERROR,message=e.userMessage()) } }
+            catch(e: Exception) { pending?.delete(); mutable.update { it.copy(stage=UpdateStage.ERROR,message=e.updateMessage(),dialog=true,transfer=null) } }
         }
     }
     fun cancelDownload() {
         if(state.value.stage !in listOf(UpdateStage.DOWNLOADING,UpdateStage.VERIFYING)) return
         operation++; job?.cancel(); source.cancel()
-        mutable.update { it.copy(stage=UpdateStage.AVAILABLE,bytes=0,message=null) }
+        mutable.update { it.copy(stage=UpdateStage.AVAILABLE,bytes=0,message=null,transfer=null) }
     }
     fun requestInstall() { if(state.value.downloaded!=null) mutable.update { it.copy(installRequested=true,dialog=false,message=null) } }
     fun consumeInstallRequest() { mutable.update { it.copy(installRequested=false) } }

@@ -6,10 +6,12 @@ import java.net.URI
 const val RELEASE_REPOSITORY = "L-Chris/flashnext-app"
 const val MAX_UPDATE_BYTES = 100L * 1024 * 1024
 data class Update(val version: String, val available: Boolean, val url: String,
-    val size: Long = 0, val sha256: String? = null, val checksumsUrl: String = "") {
+    val size: Long = 0, val sha256: String? = null, val checksumsUrl: String = "",
+    val assetId: Long = 0, val checksumsAssetId: Long = 0) {
     val fileName get() = url.substringAfterLast('/')
     fun json() = JSONObject().put("version",version).put("url",url).put("size",size)
         .put("sha256",sha256 ?: JSONObject.NULL).put("checksumsUrl",checksumsUrl)
+        .put("assetId",assetId).put("checksumsAssetId",checksumsAssetId)
 }
 fun newerVersion(candidate: String, current: String): Boolean {
     val next=parseVersion(candidate) ?: return false; val installed=parseVersion(current) ?: return false
@@ -32,5 +34,6 @@ fun parseUpdate(body: JSONObject, current: String, abis: List<String>): Update? 
     val asset=assets.first { it.text("name")==name }
     val digest=asset.text("digest").takeIf { it.matches(Regex("sha256:[0-9a-fA-F]{64}")) }?.substringAfter(':')?.lowercase()
     return Update(normalized, available, "https://github.com/$RELEASE_REPOSITORY/releases/download/$tag/$name",asset.optLong("size"),digest,
-        "https://github.com/$RELEASE_REPOSITORY/releases/download/$tag/SHA256SUMS.txt")
+        "https://github.com/$RELEASE_REPOSITORY/releases/download/$tag/SHA256SUMS.txt",asset.optLong("id").coerceAtLeast(0),
+        assets.firstOrNull { it.text("name")=="SHA256SUMS.txt" && it.text("state")=="uploaded" }?.optLong("id")?.coerceAtLeast(0) ?: 0)
 }
