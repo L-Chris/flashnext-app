@@ -1,6 +1,7 @@
 package com.rethinkos.flashnext_app
 
 import android.os.Bundle
+import android.media.AudioManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -32,6 +33,7 @@ class MainActivity : ComponentActivity() {
     private val model: AppViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); enableEdgeToEdge()
+        volumeControlStream = AudioManager.STREAM_MUSIC
         setContent {
             val dark = isSystemInDarkTheme()
             FlashNextTheme(dark) {

@@ -72,3 +72,11 @@ android/gradlew -p android connectedDebugAndroidTest '-Pandroid.testInstrumentat
 ```
 
 Windows 使用 `android/gradlew.bat`。APK 位于 `build/native/app/outputs/apk/release/`。GitHub Actions 保存三个 APK、SHA256SUMS 和独立 R8 mapping Artifact，手动运行不创建 Release；新 tag 才发布，禁止覆盖已有 Release。
+
+## 媒体音量与响度核验
+
+Activity 显式将音量键绑定 `STREAM_MUSIC`，包括短单词播放结束后的间隙；播放器显式使用增益 1，保留媒体/语音音频属性和原有焦点中断规则，不强制调高手机媒体音量。Debug 包的 `StudyAudio` 日志记录播放器增益、系统媒体音量/最大值、静音状态、音频模式及可用输出类型。可用输出列表不代表已选路由，不能仅根据它判定蓝牙音频路径。
+
+后端可为历史录音返回 `?playback=<版本ID>` 的响度校正版地址；原有 `resolveResource()` 支持相同源的查询参数，不需客户端变更。录音更新后完全退出并重新打开应用，避免复用内存中的旧队列。音量键绑定和诊断日志的代码改动则需要构建新 APK。
+
+本次改动的构建、Lint、JVM 和音频设备测试需要在有 JDK 17、Android SDK 36 和设备的机器按上方命令执行。当前部署主机没有 JDK/SDK/adb，不能将这部分代码检查视作已完成的 Android 构建或蓝牙实测。Debug 音频诊断可用 `adb logcat -s StudyAudio`，并配合 `adb shell dumpsys audio` 核对运行时音量和路由；实测使用同一文件、同一副蓝牙耳机及相同媒体音量。

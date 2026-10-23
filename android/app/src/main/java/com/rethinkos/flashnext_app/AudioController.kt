@@ -1,6 +1,8 @@
 package com.rethinkos.flashnext_app
 
 import android.content.Context
+import android.media.AudioManager
+import android.util.Log
 import androidx.media3.common.*
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,8 +20,14 @@ class AudioController(private val context: Context) {
             val urls = media.map { api.resolveResource(it.url) }
             val p = ExoPlayer.Builder(context).build()
             player = p
+            p.volume = 1f
             p.setAudioAttributes(AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_SPEECH).build(), true)
             p.setHandleAudioBecomingNoisy(true)
+            if (BuildConfig.DEBUG) {
+                val manager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                val outputs = manager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).joinToString(",") { it.type.toString() }
+                Log.d("StudyAudio", "playerVolume=${p.volume}; mediaVolume=${manager.getStreamVolume(AudioManager.STREAM_MUSIC)}/${manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)}; mediaMuted=${manager.isStreamMute(AudioManager.STREAM_MUSIC)}; mode=${manager.mode}; availableOutputs=$outputs; files=${urls.size}")
+            }
             p.addListener(object : Player.Listener {
                 override fun onPlaybackSuppressionReasonChanged(playbackSuppressionReason: Int) {
                     if (player === p && playbackSuppressionReason == Player.PLAYBACK_SUPPRESSION_REASON_TRANSIENT_AUDIO_FOCUS_LOSS) stop()
