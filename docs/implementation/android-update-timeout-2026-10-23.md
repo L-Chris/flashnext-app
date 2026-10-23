@@ -40,6 +40,8 @@ JVM 用例覆盖连接阶段无字节超时重试、断线续传、忽略 Range 
 
 本轮 29 项 JVM 用例通过；Android Lint 及三种 ABI 的 release 构建通过。模拟器上的连接提示、超时后重试与取消界面用例通过。手机验证仅执行不依赖前台界面的网络测试，不将其计作真机界面或系统安装器测试。
 
+下载测试的模拟服务和请求固定使用 `127.0.0.1`，避免 Linux 上 `localhost` 同时解析到 IPv4、IPv6 时，断线重连误连到未监听的地址；不改变生产下载器的 DNS 或连接策略。
+
 界面用例 `AppUpdaterTest.connectionStageIsVisibleBeforeBytesAndTimeoutAllowsRetryAndCancel` 使用本地伪数据验证连接提示、错误恢复、重试与取消。依赖更高版本 APK 样本的原有安装用例需单独提供样本，不能把跳过计为通过。
 
 真实网络验证独立于界面测试，仅在明确传入参数时读取公开 GitHub Release 并下载当前设备 ABI 的 APK，不触发安装或写入学习服务：

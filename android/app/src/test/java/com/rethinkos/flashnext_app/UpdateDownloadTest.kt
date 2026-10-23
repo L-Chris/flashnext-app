@@ -5,6 +5,7 @@ import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.CopyOnWriteArrayList
 import java.net.SocketTimeoutException
+import java.net.InetAddress
 import javax.net.ssl.SSLHandshakeException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
@@ -26,10 +27,12 @@ class UpdateDownloadTest {
     private val digest get() = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
     private fun update(hash: String?=digest)=Update("0.4.0",true,url,bytes.size.toLong(),hash,url.substringBeforeLast('/')+"/SHA256SUMS.txt")
     @Before fun setup() {
-        server=MockWebServer(); server.start()
+        // Pin the fixture to one address: localhost can resolve to both IPv4 and IPv6 on Linux.
+        server=MockWebServer(); server.start(InetAddress.getByName("127.0.0.1"),0)
         client=OkHttpClient.Builder().followRedirects(false).retryOnConnectionFailure(false).addInterceptor { chain ->
             val original=chain.request()
-            val local=original.newBuilder().url(server.url(original.url.encodedPath+(original.url.encodedQuery?.let { "?$it" } ?: ""))).build()
+            val fixture=server.url(original.url.encodedPath+(original.url.encodedQuery?.let { "?$it" } ?: "")).newBuilder().host("127.0.0.1").build()
+            val local=original.newBuilder().url(fixture).build()
             chain.proceed(local).newBuilder().request(original).build()
         }.build()
         source=GitHubUpdateSource(client,server.url("/latest").toString(),"0.3.0",listOf("arm64-v8a"),TransferPolicy(retryDelayMillis=0))
