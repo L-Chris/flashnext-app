@@ -12,7 +12,8 @@ fun jsonList(value: String): List<String> = runCatching { JSONArray(value).let {
 data class Deck(val id: Int, val name: String, val description: String = "", val dueCount: Int = 0, val intraday: Int = 0, val fresh: Int = 0) {
     companion object { fun parse(j: JSONObject) = Deck(j.optInt("id"), j.text("name"), j.text("description"), j.optInt("dueCount"), j.optJSONObject("counts")?.optInt("intraday") ?: 0, j.optJSONObject("counts")?.optInt("fresh") ?: 0) }
 }
-data class Media(val id: String, val side: String, val position: Int, val url: String)
+data class Media(val id: String, val side: String, val position: Int, val url: String,
+    val bytes: Long = 0, val sha256: String? = null)
 data class Pronunciation(val ipa: String, val accent: String, val pos: String, val status: String, val usage: String)
 data class Sense(val examples: String, val details: String, val zh: String)
 data class Word(val language: String, val reading: String, val pos: String, val phonetic: String,
@@ -33,7 +34,8 @@ data class StudyCard(val id: Int, val front: String = "", val back: String = "",
         return StudyCard(j.optInt("id"), j.text("front"), j.text("back"), j.text("contentFormat", "plain"),
             j.optInt("state"), j.optInt("interval"), j.text("due"),
             Presentation(p.optBoolean("audioAutoplay"), p.nullInt("answerRevealAfterMs"), p.optInt("settingsVersion")),
-            j.rows("media").map { Media(it.text("mediaId"), it.text("side", "front"), it.optInt("position"), it.text("url")) },
+            j.rows("media").map { Media(it.text("mediaId"), it.text("side", "front"), it.optInt("position"), it.text("url"),
+                it.optLong("bytes"), it.text("sha256").ifBlank { it.optJSONObject("playback")?.text("sha256").orEmpty() }.takeIf { hash -> hash.isNotBlank() }) },
             j.optJSONObject("word")?.let(Word::parse))
     } }
 }

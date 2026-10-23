@@ -44,7 +44,7 @@ class MathRenderTest {
             assertEquals("false",evaluate("document.getElementById('answer').hidden"))
             assertEquals("true",evaluate("!!document.querySelector('#answer .katex')")); assertTrue(session.state.value.canRate)
             screenshot("math-back.png")
-        } finally { rule.runOnUiThread { session.close(); scope.cancel(); api.close() } }
+        } finally { rule.runOnUiThread { session.close(); audio.close(); scope.cancel(); api.close() } }
     }
     private fun findWeb(v: View): WebView? {
         if(v is WebView) return v

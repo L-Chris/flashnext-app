@@ -23,6 +23,19 @@ class ReviewSessionTest {
     }
     private fun ready(session: ReviewSession) { val s=session.state.value; session.contentReady(s.visit,s.revealed) }
     private fun answer(session: ReviewSession) { ready(session); session.reveal(); ready(session); session.rate(3) }
+    @Test fun `preloading starts before rendering follows faces and cancels in background or on close`() = runTest {
+        val api=FakeApi().apply { cards=(1..2).map { id -> StudyCard(id,presentation=Presentation(autoplay=true),
+            media=listOf(Media("$id-front","front",0,"/$id/f"),Media("$id-back","back",0,"/$id/b"))) } }
+        val warmed=mutableListOf<List<String>>(); var played=0
+        val s=ReviewSession(api,1,backgroundScope,autoplay={played++},warmAudio={ warmed.add(it.map { m -> m.id }) })
+        s.load(); runCurrent()
+        assertEquals(listOf("1-front","1-back","2-front"),warmed.last()); assertEquals(0,played)
+        ready(s); assertEquals(1,played)
+        s.reveal(); assertEquals(listOf("1-back","1-front","2-front"),warmed.last())
+        s.foreground(false); assertTrue(warmed.last().isEmpty())
+        s.foreground(true); assertEquals("1-back",warmed.last().first()); assertEquals(1,played)
+        s.close(); assertTrue(warmed.last().isEmpty())
+    }
     @Test fun `twenty confirmations consume snapshot without per-card requests`() = runTest {
         val api=FakeApi(); val s=ReviewSession(api,1,backgroundScope,clock={testScheduler.currentTime})
         s.load(); runCurrent()

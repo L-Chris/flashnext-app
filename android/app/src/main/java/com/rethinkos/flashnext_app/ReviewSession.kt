@@ -16,7 +16,8 @@ class ReviewSession(val api: StudyApi, val deck: Int, parent: CoroutineScope,
     private val clock: () -> Long = { System.nanoTime() / 1_000_000 },
     private val wallClock: () -> Long = { System.currentTimeMillis() },
     private val stopAudio: () -> Unit = {},
-    private val autoplay: (List<Media>) -> Unit = {}) {
+    private val autoplay: (List<Media>) -> Unit = {},
+    private val warmAudio: (List<Media>) -> Unit = {}) {
     private val job = SupervisorJob(parent.coroutineContext[Job])
     private val scope = CoroutineScope(parent.coroutineContext + job)
     private val mutable = MutableStateFlow(ReviewState())
@@ -65,6 +66,11 @@ class ReviewSession(val api: StudyApi, val deck: Int, parent: CoroutineScope,
         automaticAllowed = true; autoplayApplied = false
         remaining = card?.presentation?.revealMs?.takeIf { it > 0 }?.toLong()
         update { it.copy(card = card, visit = it.visit + 1, ready = false, revealed = card?.presentation?.revealMs == 0) }
+        warm()
+    }
+    private fun warm() {
+        val s=state.value
+        warmAudio(if(s.foreground) audioCandidates(s.card,queue.firstOrNull { it.id!=s.card?.id },s.revealed) else emptyList())
     }
     fun load() {
         if (state.value.busy || closed) return
@@ -118,17 +124,18 @@ class ReviewSession(val api: StudyApi, val deck: Int, parent: CoroutineScope,
         if (closed || s.busy || !s.foreground || s.revealed || s.card == null) return
         freeze(); stopAudio(); remaining = null; autoplayApplied = false
         update { it.copy(revealed = true, ready = false) }
+        warm()
     }
     fun foreground(value: Boolean) {
         if (closed || value == state.value.foreground) return
         update { it.copy(foreground = value) }
-        if (!value) { refreshOnAdvance = true; freeze(); stopAudio() } else resume()
+        if (!value) { refreshOnAdvance = true; warmAudio(emptyList()); freeze(); stopAudio() } else { warm(); resume() }
     }
     fun rate(rating: Int) {
         val s = state.value
         if (!s.canRate || rating !in 1..4 || closed) return
         val current = s.card!!
-        freeze(); stopAudio(); update { it.copy(busy = true, notice = null) }
+        warmAudio(emptyList()); freeze(); stopAudio(); update { it.copy(busy = true, notice = null) }
         scope.launch {
             try {
                 val rated = api.review(current.id, rating, durationMs)
@@ -140,22 +147,22 @@ class ReviewSession(val api: StudyApi, val deck: Int, parent: CoroutineScope,
                 else { begin(queue.first()); update { it.copy(busy = false, canUndo = true) } }
             } catch (e: CancellationException) { throw e
             } catch (e: Exception) {
-                update { it.copy(busy = false, notice = "评分失败，请确认网络后再操作：${e.userMessage()}") }; resume()
+                update { it.copy(busy = false, notice = "评分失败，请确认网络后再操作：${e.userMessage()}") }; warm(); resume()
             }
         }
     }
     fun undo() {
         val id = lastRated ?: return
         if (closed || state.value.busy) return
-        freeze(); stopAudio(); update { it.copy(busy = true, error = null, notice = null) }
+        warmAudio(emptyList()); freeze(); stopAudio(); update { it.copy(busy = true, error = null, notice = null) }
         scope.launch {
             try {
                 val restored = api.undo(id)
                 if (closed) return@launch
                 lastRated = null; begin(null); refresh(restored)
             } catch (e: CancellationException) { throw e
-            } catch (e: Exception) { update { it.copy(busy = false, notice = "撤销失败：${e.userMessage()}") }; resume() }
+            } catch (e: Exception) { update { it.copy(busy = false, notice = "撤销失败：${e.userMessage()}") }; warm(); resume() }
         }
     }
-    fun close() { freeze(); stopAudio(); closed = true; job.cancel() }
+    fun close() { warmAudio(emptyList()); freeze(); stopAudio(); closed = true; job.cancel() }
 }

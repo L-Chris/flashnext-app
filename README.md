@@ -4,7 +4,7 @@
 
 <img src="assets/branding/logo.png" width="96" alt="FlashNext logo" />
 
-最新版本：[v0.3.3](https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.3)，更新内容见 [发布说明](docs/releases/v0.3.3.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包，原生版约 2.37 MB。
+最新版本：[v0.3.4](https://github.com/L-Chris/flashnext-app/releases/tag/v0.3.4)，更新内容见 [发布说明](docs/releases/v0.3.4.md)。普通 Android 手机优先下载 `arm64-v8a` 安装包，原生版约 2.40 MB。
 
 FlashNext 的 Android 在线复习客户端，使用 Kotlin、Jetpack Compose、系统 WebView 和 Media3。
 包含牌组列表、卡片复习与撤销、牌组学习设置、服务器设置和连接测试。
@@ -18,6 +18,8 @@ FlashNext 的 Android 在线复习客户端，使用 Kotlin、Jetpack Compose、
 首页统一「设置」弹窗可配置服务器地址和所有牌组共用的 IANA 时区，共用一个“保存”按钮，另可测试连接及检查应用更新。共享时区使用新版后端 `GET/POST /api/settings`，该接口仅接受时区，额度和日切点仍按牌组保存。
 
 支持服务端 Markdown/数学公式、英日词卡与正反面音频顺序播放。倒计时从内容就绪后开始，后台暂停，手动显示会取消倒计时。评分和撤销由服务器处理，队列完成后仍可撤销。
+
+音频在前台学习期间复用播放器，使用最多 128 MiB 的本地音频缓存。开启自动播放时，小范围预加载当前卡和下一张卡的音频，实际播放优先；完整缓存的音频可在断网时重播，评分仍需联网。录音通过内容哈希或播放版本区分，避免长期复用旧文件；旧后端未提供版本信息的普通地址仅在当前学习会话内复用。实现与验证见 [音频缓存与预加载](docs/implementation/android-audio-cache-2026-10-23.md)。
 
 英语多读音默认显示各自的词性、词义和时态说明；同用法的备选音标以“或”合并。只有读音说明完整覆盖原释义时才隐藏重复释义，自定义笔记保留原文。详见 [多读音同步记录](docs/implementation/app-pronunciations-2026-10-21.md)。
 
@@ -39,7 +41,7 @@ android/gradlew -p android assembleRelease
 ```
 
 APK 输出目录：`build/native/app/outputs/apk/release/`。普通手机选择 `app-arm64-v8a-release.apk`；32 位旧机和 x86_64 设备选择对应包。不生成通用包。
-三个架构使用相同 versionCode，覆盖升级需提高构建号。版本统一读取 `android/version.properties`，当前为 `0.3.3+13`；也可用 `-PbuildNumber=数字` 覆盖本地验证构建号。
+三个架构使用相同 versionCode，覆盖升级需提高构建号。版本统一读取 `android/version.properties`，当前为 `0.3.4+14`；也可用 `-PbuildNumber=数字` 覆盖本地验证构建号。
 Android SDK 路径在本机 `android/local.properties` 中配置，例如 `sdk.dir=F\:/android-sdk`。
 详细实现、验证命令与迁移说明见 [原生 Android 迁移](docs/implementation/native-android-2026-10-22.md)。
 
@@ -59,13 +61,13 @@ Android SDK 路径在本机 `android/local.properties` 中配置，例如 `sdk.d
 
 推送 tag 会触发 `.github/workflows/android.yml`，也可在 GitHub Actions 页面手动运行。
 工作流使用 Java 17 和 Gradle，执行原生单元测试、Android Lint 和 release 构建。启用 R8 代码优化及资源裁剪；对应 `mapping.txt` 另存为 `flashnext-symbols-<版本>-<运行编号>` Artifact，保存 90 天，排查历史崩溃需使用匹配构建的文件。
-版本名和构建号取自 `android/version.properties`（当前为 `0.3.3+13`）；每次发布都应提高版本名和构建号。发布规则见 [AGENTS.md](AGENTS.md#github-release-notes)，完整步骤见 [发布流程](docs/RELEASING.md)。
+版本名和构建号取自 `android/version.properties`（当前为 `0.3.4+14`）；每次发布都应提高版本名和构建号。发布规则见 [AGENTS.md](AGENTS.md#github-release-notes)，完整步骤见 [发布流程](docs/RELEASING.md)。
 tag 必须为与版本名匹配的 `vX.Y.Z`，不匹配时构建会失败，避免 App 更新判断与 APK 实际版本不一致。
 
 ```sh
 # 先修改 android/version.properties 的 versionName 和 versionCode
-git tag -a v0.3.3 -m "FlashNext v0.3.3"
-git push --atomic origin main refs/tags/v0.3.3
+git tag -a v0.3.4 -m "FlashNext v0.3.4"
+git push --atomic origin main refs/tags/v0.3.4
 ```
 
 tag 构建成功后自动创建同名 GitHub Release，附带 `FlashNext-X.Y.Z-android-arm64-v8a.apk`、`FlashNext-X.Y.Z-android-armeabi-v7a.apk`、`FlashNext-X.Y.Z-android-x86_64.apk` 和 `SHA256SUMS.txt`。

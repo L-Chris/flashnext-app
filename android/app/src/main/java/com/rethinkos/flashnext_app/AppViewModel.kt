@@ -36,10 +36,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         leaveReview(false); api.close(); api = HttpStudyApi(url); refresh()
     }
     fun enterReview(value: Deck): ReviewSession {
-        session?.close(); deck = value
+        session?.close(); audio.endSession(); deck = value
         return ReviewSession(api, value.id, viewModelScope, stopAudio = audio::stop,
-            autoplay = { audio.play(api, it) }).also { session = it; it.load() }
+            autoplay = { audio.play(api, it) }, warmAudio = { audio.warm(api,it) }).also { session = it; it.load() }
     }
-    fun leaveReview(refresh: Boolean = true) { session?.close(); session = null; deck = null; if (refresh) refresh() }
-    override fun onCleared() { session?.close(); audio.stop(); api.close(); updater.close() }
+    fun leaveReview(refresh: Boolean = true) { session?.close(); audio.endSession(); session = null; deck = null; if (refresh) refresh() }
+    override fun onCleared() { session?.close(); audio.close(); api.close(); updater.close() }
 }

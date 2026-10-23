@@ -32,7 +32,7 @@ class NativeAppTest {
     private var rated=false
     private var settingsGate: CountDownLatch?=null
     private lateinit var model: AppViewModel
-    private val card="""{"id":1,"front":"native question","back":"native answer","presentation":{}}"""
+    private val card="""{"id":1,"front":"native question","back":"native answer","presentation":{},"media":[{"mediaId":"front","side":"front","position":0,"url":"/audio/front.wav"},{"mediaId":"back","side":"back","position":0,"url":"/audio/back.wav"}]}"""
     @Before fun setup() {
         server.dispatcher=object: Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
@@ -190,6 +190,8 @@ class NativeAppTest {
         if(InstrumentationRegistry.getArguments().getString("captureUi")!="true") return
         val directory=File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null),"ui-qa").apply { mkdirs() }
         rule.waitForIdle()
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+        SystemClock.sleep(200)
         File(directory,"$name.png").outputStream().use { InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot().compress(Bitmap.CompressFormat.PNG,100,it) }
     }
     private fun outsideTap() {

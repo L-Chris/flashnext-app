@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     override fun onStart() { super.onStart(); model.session?.foreground(true); if(model.session==null) model.updater.check(automatic=true) }
-    override fun onStop() { model.session?.foreground(false); model.audio.stop(); super.onStop() }
+    override fun onStop() { model.session?.foreground(false); model.audio.suspendPlayback(); super.onStop() }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -124,30 +124,34 @@ class MainActivity : ComponentActivity() {
         val card = s.card
         if (card != null) {
             val border = MaterialTheme.colorScheme.outlineVariant
-            Box(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(16.dp)).testTag("review-card")
+            val media = card.media(s.revealed)
+            Column(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(16.dp)).testTag("review-card")
                 .background(MaterialTheme.colorScheme.surface)
                 .drawWithContent { drawContent(); val width = 1.25.dp.toPx(); drawRoundRect(border,
                     topLeft = androidx.compose.ui.geometry.Offset(width/2, width/2),
                     size = androidx.compose.ui.geometry.Size(size.width-width, size.height-width),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(16.dp.toPx()), style = Stroke(width)) }) {
-                key(s.visit) {
-                    if (card.format == "markdown_math") MathFace(api, card, session, s, dark)
-                    else {
-                        PlainFace(card, s.revealed)
-                        LaunchedEffect(s.revealed) { withFrameNanos { }; session.contentReady(s.visit, s.revealed) }
+                Box(Modifier.weight(1f).fillMaxWidth()) {
+                    key(s.visit) {
+                        if (card.format == "markdown_math") MathFace(api, card, session, s, dark)
+                        else {
+                            PlainFace(card, s.revealed)
+                            LaunchedEffect(s.revealed) { withFrameNanos { }; session.contentReady(s.visit, s.revealed) }
+                        }
                     }
                 }
-            }
-            val media = card.media(s.revealed)
-            if(media.isNotEmpty()) {
-                Row(Modifier.fillMaxWidth(),verticalAlignment = Alignment.CenterVertically) {
-                    Text("${if(s.revealed) "背面" else "正面"}音频 · ${media.size} 个文件",Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
-                    TextButton(enabled = !s.busy && s.foreground && s.ready, onClick = { if(a.playing || a.loading) audio.stop() else audio.play(api, media) }) {
-                        Icon(painterResource(if(a.playing || a.loading) R.drawable.ic_stop else R.drawable.ic_play_arrow),null,Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp)); Text(if(a.loading) "加载中（停止）" else if(a.playing) "停止" else "播放")
+                if(media.isNotEmpty()) Column(Modifier.fillMaxWidth().padding(start=16.dp,end=16.dp,bottom=12.dp),horizontalAlignment=Alignment.CenterHorizontally) {
+                    IconButton(enabled = !s.busy && s.foreground && s.ready,
+                        onClick = { if(a.playing || a.loading) audio.stop() else audio.play(api, media) },
+                        modifier=Modifier.size(56.dp),colors=IconButtonDefaults.iconButtonColors(contentColor=MaterialTheme.colorScheme.primary)) {
+                        Box(contentAlignment=Alignment.Center) {
+                            if(a.loading) CircularProgressIndicator(Modifier.size(44.dp),strokeWidth=2.dp)
+                            Icon(painterResource(if(a.playing || a.loading) R.drawable.ic_stop else R.drawable.ic_play_arrow),
+                                if(a.loading) "停止加载音频" else if(a.playing) "停止音频" else "播放音频",Modifier.size(36.dp))
+                        }
                     }
+                    a.error?.let { Text(it,Modifier.fillMaxWidth(),color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,textAlign=TextAlign.Center) }
                 }
-                a.error?.let { Text(it,color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
             Spacer(Modifier.height(12.dp))
             if (!s.revealed) Button(session::reveal, Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("reveal"), enabled = !s.busy && s.foreground) {
@@ -168,7 +172,8 @@ class MainActivity : ComponentActivity() {
     FlowRow(Modifier.fillMaxWidth().testTag("rating-buttons"),horizontalArrangement=Arrangement.spacedBy(8.dp,Alignment.CenterHorizontally),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         listOf("忘记" to Color(0xFFDC2626),"困难" to Color(0xFFD97706),"良好" to Color(0xFF059669),"简单" to Color(0xFF0284C7)).forEachIndexed { i,(label,color) ->
             Button(onClick={rate(i+1)},enabled=enabled,colors=ButtonDefaults.buttonColors(containerColor=color,contentColor=Color.White),
-                modifier=Modifier.widthIn(min=64.dp).heightIn(min=48.dp).testTag("rating-${i+1}"),contentPadding=PaddingValues(horizontal=16.dp,vertical=8.dp)) { Text(label,maxLines=1) }
+                shape=RoundedCornerShape(8.dp),
+                modifier=Modifier.widthIn(min=72.dp).heightIn(min=52.dp).testTag("rating-${i+1}"),contentPadding=PaddingValues(horizontal=18.dp,vertical=10.dp)) { Text(label,maxLines=1) }
         }
     }
 }
